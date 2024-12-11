@@ -26,20 +26,31 @@ if (accounts.length === 0) {
 
 console.log(`共找到 ${accounts.length} 个账号, 开始签到...`);
 
+// 存储签到结果
+let results = [];
+
 (async () => {
   for (let i = 0; i < accounts.length; i++) {
     console.log(`正在为账户 ${i + 1} 执行签到...`);
     try {
       await sign(accounts[i].csrfToken, accounts[i].cookie);
       console.log(`账户 ${i + 1} 签到成功`);
-      await notify.sendNotify('签到通知', `账户 ${i + 1} 签到成功`);
+      results.push(`账户 ${i + 1}: 签到成功`);
     } catch (e) {
       console.error(`账户 ${i + 1} 签到失败: ${e.message}`);
-      await notify.sendNotify('签到通知', `账户 ${i + 1} 签到失败: ${e.message}`);
+      results.push(`账户 ${i + 1}: 签到失败 - ${e.message}`);
     }
     await randomDelay(3000, 8000); // 随机延迟
   }
-  console.log('所有账户签到完毕');
+
+  // 生成推送内容
+  const successCount = results.filter(r => r.includes('成功')).length;
+  const failCount = results.filter(r => r.includes('失败')).length;
+  let notifyContent = `所有账户签到完毕。\n\n总账户数: ${accounts.length}\n成功: ${successCount}\n失败: ${failCount}\n\n详细信息:\n` + results.join('\n');
+  
+  // 推送通知
+  await notify.sendNotify('签到结果通知', notifyContent);
+  console.log('通知发送完成');
 })()
   .catch((e) => {
     console.error(`脚本执行出错: ${e}`);
