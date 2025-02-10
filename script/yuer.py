@@ -9,7 +9,7 @@
 #  官方文档 https://wxpusher.zjiecode.com/docs/#/ 
 #   不再需要手动阅读前2篇 已更新强检模式 强检建议都要去过 手动阅读造成ip不同容易黑号
 
-ua = '' #抓包时候的请求头的user-agent的值
+ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.52(0x18003426) NetType/WIFI Language/zh_CN' #抓包时候的请求头的user-agent的值
 withdrawal_money = 0.3 # 提现金额 大于这个金额就自动微信提现 最低0.3
 max_threads = 1 
 
