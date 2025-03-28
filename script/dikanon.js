@@ -1,6 +1,6 @@
 // == Quantumult X 脚本 ==  
 // 功能：迪卡侬自动签到系统（多账户版）  
-// 触发方式：重写规则 + 定时任务shenji
+// 触发方式：重写规则 + 定时任务11
 ******
 [mitm]
 hostname = api-cn.decathlon.com.cn
