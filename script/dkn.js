@@ -1,14 +1,14 @@
 // == Quantumult X 脚本 ==  
 // 功能：迪卡侬自动签到系统（多账户版）  
 // 触发方式：重写规则 + 定时任务
-******************************************************************************************
-[rewrite_local]
-^https:\/\/api-cn\.decathlon\.com\.cn\/membership\/.* url script-response-body dkn.js  
-^https:\/\/api-cn\.decathlon\.com\.cn\/user\/.* url script-response-body dkn.js
-
+******
 [mitm]
 hostname = api-cn.decathlon.com.cn
-*******************************************************************************************
+
+[rewrite_local]
+^https:\/\/api-cn\.decathlon\.com\.cn\/membership\/.* url script-response-body https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/script/dkn.js 
+^https:\/\/api-cn\.decathlon\.com\.cn\/user\/.* url script-response-body https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/script/dkn.js
+******
 const CACHE_KEY = 'dkn_account_list';  
 const TARGET_HOST = 'api-cn.decathlon.com.cn';  
 const API_KEY = '8f3f8d79-8b19-4c79-8f54-4d0cdd1f8426';  
