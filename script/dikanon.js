@@ -6,8 +6,8 @@
 hostname = api-cn.decathlon.com.cn
 
 [rewrite_local]
-^https:\/\/api-cn\.decathlon\.com\.cn\/membership\/.* url script-requst-header https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/script/dikanon.js
-^https:\/\/api-cn\.decathlon\.com\.cn\/user\/.* url script-requst-header https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/script/dikanon.js
+^https:\/\/api-cn\.decathlon\.com\.cn\/membership\/.* url script-request-header https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/script/dikanon.js
+^https:\/\/api-cn\.decathlon\.com\.cn\/user\/.* url script-request-header https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/script/dikanon.js
 ******
 const CACHE_KEY = 'dkn_account_list';  
 const TARGET_HOST = 'api-cn.decathlon.com.cn';  
