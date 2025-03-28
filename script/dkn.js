@@ -1,30 +1,61 @@
-const targetHost = "api-cn.decathlon.com.cn"; // 目标域名  
-const cookieName = "迪卡侬Auth数据";  
-const storageKey = "dkn_data"; // 存储变量名
+// 脚本名称: 迪卡侬Auth抓取  
+// 功能说明: 自动提取Authorization头并存储为dkn_data  
+// 适配版本: Quantumult X v1.4.5+  
+// 更新时间: 2024-06-20
+***
+[mitm]
+hostname = api-cn.decathlon.com.cn, *.decathlon.com.cn
 
-const $ = new API('decathlon-auth', true);
+[rewrite_local]
+^https:\/\/api-cn\.decathlon\.com\.cn url script-response-body https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/script/dkn.js 
+***
+//#!name=迪卡侬Auth数据抓取 
+//#!desc=自动捕获迪卡侬小程序Authorization头
 
-// 仅处理目标域名的请求  
-if ($.request.url.includes(targetHost)) {  
-  // 从请求头提取Authorization值  
-  const authHeader = $.request.headers?.['Authorization'];  
-    
-  if (authHeader) {  
-    // 提取Bearer Token（去除"Bearer "前缀）  
-    const authToken = authHeader.replace(/^Bearer\s+/i, '');  
-      
-    // 存储到持久化数据  
-    $.prefs.set(storageKey, authToken);  
-      
-    // 发送成功通知（生产环境可关闭）  
-    $.notify(  
-      `🔑 ${cookieName} 更新成功`,  
-      '',  
-      `已捕获最新Token\n${authToken.slice(0, 15)}...`  
-    );  
-  } else {  
-    $.notify(`⚠️ ${cookieName} 获取失败`, '', '未找到Authorization头');  
-  }  
+const targetDomain = "api-cn.decathlon.com.cn";  
+const storageKey = "dkn_data";
+
+// 新版API初始化  
+const $ = new Rewrite('DecathlonAuth', true);
+
+if (typeof $request !== 'undefined') {  
+  // 主处理逻辑  
+  handleRequest($request);  
+} else {  
+  // 手动执行调试  
+  $.notify("ℹ️ 脚本需配合MitM使用","","请确保目标域名已加入MitM列表");  
 }
 
-$.done();  
+function handleRequest(req) {  
+  try {  
+    if (req.url.indexOf(targetDomain) === -1) {  
+      $.done({});  
+      return;  
+    }
+
+    const headers = req.headers;  
+    const authHeader = headers?.Authorization || headers?.authorization;
+
+    if (authHeader) {  
+      const authToken = authHeader.replace(/^Bearer\s+/i, '');  
+        
+      // 新版持久化存储方法  
+      $prefs.setValueForKey(authToken, storageKey);  
+        
+      $.notify(  
+        "✅ 迪卡侬Token捕获成功",  
+        `目标域名: ${targetDomain}`,  
+        `最新Token: ${authToken.slice(0, 15)}...`  
+      );  
+        
+      // 调试日志（需开启QX调试模式）  
+      $.log(`[Decathlon] 存储成功: ${storageKey}`);  
+    } else {  
+      $.log("[Decathlon] 未找到Authorization头");  
+    }  
+  } catch (e) {  
+    $.log(`[Decathlon] 处理异常: ${e}`);  
+  } finally {  
+    $.done({});  
+  }  
+}
