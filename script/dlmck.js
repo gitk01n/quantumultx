@@ -25,5 +25,5 @@ function getCookie() {
         }
     }
 }
-
+getCookie();
 
