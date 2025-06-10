@@ -6,35 +6,18 @@
 [MITM]
 hostname = game.dominos.com.cn
 ************************************************************************************/
-console.log("🔥 dlmck.js 脚本已执行");
+console.log("🔥 脚本触发成功");
+console.log("🌐 请求 URL:", $request.url);
+console.log("📦 请求头:", JSON.stringify($request.headers));
 
-const $ = new Env("多米诺授权抓取");
+let auth = $request.headers["Authorization"] || $request.headers["authorization"];
 
-(async () => {
-  try {
-    const headers = $request.headers;
-    const auth = headers["Authorization"] || headers["authorization"];
-    if (!auth) throw "未找到 Authorization";
-
-    await $.setVal("dlmck", auth);
-    $.log(`✅ 成功抓取 Authorization：${auth}`);
-    $.msg("🍕 多米诺 Cookie 抓取成功", "", `变量已写入：dlmck`);
-  } catch (e) {
-    $.log(`❌ 抓取失败: ${e}`);
-  }
-})();
-
-function Env(name) {
-  const isQX = typeof $task !== "undefined";
-  const isSurge = typeof $httpClient !== "undefined";
-  const notify = (title, subtitle, message) => {
-    if (isQX) $notify(title, subtitle, message);
-    if (isSurge) $notification.post(title, subtitle, message);
-  };
-  const log = (...args) => console.log(`[${name}]`, ...args);
-  const setVal = async (key, val) => {
-    if (isQX) return $prefs.setValueForKey(val, key);
-    if (isSurge) return $persistentStore.write(val, key);
-  };
-  return { msg: notify, log, setVal };
+if (auth) {
+  console.log("✅ Authorization:", auth);
+  $prefs.setValueForKey(auth, "dlmck");
+  $notify("🍕 Authorization 抓取成功", "", `已保存至变量 dlmck`);
+} else {
+  $notify("❌ 抓取失败", "", "未发现 Authorization 字段");
 }
+
+$done({});
