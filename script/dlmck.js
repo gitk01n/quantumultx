@@ -6,35 +6,18 @@
 [MITM]
 hostname = game.dominos.com.cn
 ************************************************************************************/
-const $ = new Env("达美乐小游戏");
+const token = $request.headers['Authorization'];
 
-(async () => {
-  try {
-    const headers = $request.headers;
-    const authHeader = headers['Authorization'] || headers['authorization'];
+if (token) {
+  // 打印到调试日志
+  console.log(`🎟️ 捕获 Domino's Token: ${token}`);
 
-    if (!authHeader) throw new Error("未找到 Authorization 头");
+  // 保存到 BoxJs 环境变量
+  $prefs.setValueForKey(token, 'dominos_token');
 
-    const key = "dmlck";
-    await $.setData(authHeader, key);
-    $.msg("🎉 达美乐 CK 获取成功", "", `已写入变量 dmlck`);
-  } catch (err) {
-    $.msg("❌ 达美乐 CK 获取失败", "", err.message || err);
-  }
-})().finally(() => $done());
-
-function Env(name) {
-  return new (class {
-    constructor(name) {
-      this.name = name;
-    }
-
-    async setData(val, key) {
-      return $prefs.setValueForKey(val, key);
-    }
-
-    msg(title, subtitle = "", message = "") {
-      $notify(title, subtitle, message);
-    }
-  })(name);
+  $notify('🍕 Domino\'s Token 获取成功', '', '已保存到 BoxJs：dominos_token');
+} else {
+  $notify('❌ Domino\'s Token 获取失败', '', '请求头中未发现 Authorization');
 }
+
+$done({});
