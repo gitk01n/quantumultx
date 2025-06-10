@@ -1,5 +1,4 @@
 // Quantumult X 脚本：达美乐ck自动获取
-// 作者：franky
 /*
 [rewrite_local]
 ^https:\/\/game\.dominos\.com\.cn\/[^\/]+\/v2\/getUser\?openid=undefined url script-request-header https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/script/dlmck.js
