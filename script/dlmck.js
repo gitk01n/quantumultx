@@ -26,31 +26,4 @@ function getCookie() {
     }
 }
 
-getCookie();
 
-// =================== Env 模板 ===================
-function Env(name) {
-    return new (class {
-        constructor(name) {
-            this.name = name;
-            this.data = null;
-            this.dataFile = "boxjs.dat";
-            this.isQX = typeof $task !== "undefined";
-            this.isLoon = typeof $loon !== "undefined";
-            this.isSurge = typeof $httpClient !== "undefined" && typeof $loon === "undefined";
-            this.isNode = typeof require === "function" && !this.isQX && !this.isSurge && !this.isLoon;
-        }
-
-        setdata(val, key) {
-            if (this.isQX) return $prefs.setValueForKey(val, key);
-            if (this.isSurge) return $persistentStore.write(val, key);
-            if (this.isLoon) return $persistentStore.write(val, key);
-        }
-
-        msg(title = this.name, subtitle = "", message = "") {
-            if (this.isQX) $notify(title, subtitle, message);
-            if (this.isSurge) $notification.post(title, subtitle, message);
-            if (this.isLoon) $notification.post(title, subtitle, message);
-        }
-    })(name);
-}
