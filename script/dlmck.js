@@ -15,16 +15,22 @@ function getCookie() {
         if (authHeader) {
             const bearerToken = authHeader.match(/Bearer\s+(\S+)/i)?.[1];
             if (bearerToken) {
-                $.setdata(bearerToken, ckName); // 自动覆盖旧值
-                $.msg($.name, "Token 获取成功 ✅", `Token: ${bearerToken}`);
+                $.setdata(bearerToken, ckName); // 覆盖旧值
+                const successMsg = `Token: ${bearerToken}`;
+                $.msg($.name, "Token 获取成功 ✅", successMsg);
+                console.log(`[${$.name}] 获取成功 ✅：${successMsg}`); // ✅ 写入日志
             } else {
                 $.msg($.name, "⚠️ 获取失败", "Authorization 格式错误");
+                console.log(`[${$.name}] ❌ Authorization 格式错误`);
             }
         } else {
             $.msg($.name, "⚠️ 获取失败", "未找到 Authorization 头");
+            console.log(`[${$.name}] ❌ 未找到 Authorization 头`);
         }
+    } else {
+        console.log(`[${$.name}] 非有效请求或OPTIONS请求，跳过`);
     }
-    $done();  // ✅ 关键：终止脚本运行，避免长时间挂起
+    $done(); // 终止脚本
 }
 
 getCookie();
