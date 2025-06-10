@@ -6,18 +6,35 @@
 [MITM]
 hostname = game.dominos.com.cn
 ************************************************************************************/
-console.log("🔥 脚本触发成功");
-console.log("🌐 请求 URL:", $request.url);
-console.log("📦 请求头:", JSON.stringify($request.headers));
+const $ = new Env("达美乐小游戏");
 
-let auth = $request.headers["Authorization"] || $request.headers["authorization"];
+(async () => {
+  try {
+    const headers = $request.headers;
+    const authHeader = headers['Authorization'] || headers['authorization'];
 
-if (auth) {
-  console.log("✅ Authorization:", auth);
-  $prefs.setValueForKey(auth, "dlmck");
-  $notify("🍕 Authorization 抓取成功", "", `已保存至变量 dlmck`);
-} else {
-  $notify("❌ 抓取失败", "", "未发现 Authorization 字段");
+    if (!authHeader) throw new Error("未找到 Authorization 头");
+
+    const key = "dmlck";
+    await $.setData(authHeader, key);
+    $.msg("🎉 达美乐 CK 获取成功", "", `已写入变量 dmlck`);
+  } catch (err) {
+    $.msg("❌ 达美乐 CK 获取失败", "", err.message || err);
+  }
+})().finally(() => $done());
+
+function Env(name) {
+  return new (class {
+    constructor(name) {
+      this.name = name;
+    }
+
+    async setData(val, key) {
+      return $prefs.setValueForKey(val, key);
+    }
+
+    msg(title, subtitle = "", message = "") {
+      $notify(title, subtitle, message);
+    }
+  })(name);
 }
-
-$done({});
