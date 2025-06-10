@@ -8,14 +8,23 @@ hostname = game.dominos.com.cn
 ************************************************************************************/
 const $ = new Env("达美乐小游戏");
 const ckName = "dml_ck";
-async function getCookie() {
+
+function getCookie() {
     if ($request && $request.method != 'OPTIONS') {
-        const tokenValue = $request.headers['Authorization']  $request.headers['authorization'];
-        if (tokenValue) {
-            $.setdata(tokenValue, ckName);
-            $.msg($.name, "", "获取Cookie成功🎉");
+        const authHeader = $request.headers['Authorization'] || $request.headers['authorization'];
+        if (authHeader) {
+            const bearerToken = authHeader.match(/Bearer\s+(\S+)/i)?.[1];
+            if (bearerToken) {
+                $.setdata(bearerToken, ckName);
+                $.msg($.name, "", "获取Token成功🎉");
+            } else {
+                $.msg($.name, "", "Authorization格式错误");
+            }
         } else {
-            $.msg($.name, "", "错误获取Cookie失败");
+            $.msg($.name, "", "未找到Authorization头");
         }
     }
 }
+
+getCookie();
+$done({});
