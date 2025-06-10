@@ -6,18 +6,30 @@
 [MITM]
 hostname = game.dominos.com.cn
 ************************************************************************************/
-const token = $request.headers['Authorization'];
+const url = $request.url;
+const method = $request.method;
+const headers = $request.headers;
 
-if (token) {
-  // 打印到调试日志
-  console.log(`🎟️ 捕获 Domino's Token: ${token}`);
+// Define the regular expression to match the target URL
+const targetUrlPattern = /^https:\/\/game\.dominos\.com\.cn\/cocoalava\/v2\/getUser/;
 
-  // 保存到 BoxJs 环境变量
-  $prefs.setValueForKey(token, 'dominos_token');
+if (targetUrlPattern.test(url) && method === 'GET') {
+  const authorizationHeader = headers['Authorization'] || headers['authorization']; // Check both cases
 
-  $notify('🍕 Domino\'s Token 获取成功', '', '已保存到 BoxJs：dominos_token');
+  if (authorizationHeader) {
+    // Extract the Bearer token
+    const token = authorizationHeader.replace('Bearer ', '');
+
+    // Store in BoxJs using $persistentStore.write
+    // This will create a variable named 'dmlck' in BoxJs
+    $persistentStore.write(token, 'dmlck');
+    console.log(`Successfully extracted Dominos Authorization token and stored in BoxJs: ${token}`);
+    $notify('Dominos Auth Token Extracted', '', `Token: ${token}`);
+  } else {
+    console.log('Authorization header not found in the request.');
+  }
 } else {
-  $notify('❌ Domino\'s Token 获取失败', '', '请求头中未发现 Authorization');
+  console.log('Request URL or method does not match the target for Dominos Authorization extraction.');
 }
 
 $done({});
