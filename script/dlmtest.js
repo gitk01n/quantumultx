@@ -18,12 +18,18 @@ function getCookie() {
             const bearerToken = authHeader.match(/Bearer\s+(\S+)/i)?.[1];
             if (bearerToken) {
                 $.setdata(bearerToken, ckName);
-                const formatted = `,dlm set '${bearerToken}'`;
-                const encoded = encodeURIComponent(formatted); // 对内容进行 URL 编码
-                const shortcutURL = `shortcuts://run-shortcut?name=dmlck&input=${encoded}`;
-
-                $.msg($.name, "✅ Token 获取成功", `已准备跳转快捷指令`);
-                $.open(shortcutURL);
+                
+                // 修改后的快捷指令URL生成方式
+                const shortcutURL = `shortcuts://run-shortcut?name=dmlck&input=text&text=${encodeURIComponent(bearerToken)}`;
+                
+                $.msg($.name, "✅ Token 获取成功", `点击通知跳转快捷指令`, {
+                    "open-url": shortcutURL
+                });
+                
+                // 添加延迟确保通知显示后再跳转
+                setTimeout(() => {
+                    $.open(shortcutURL);
+                }, 1000);
             } else {
                 $.msg($.name, "❌ Token 获取失败", "Authorization 格式错误");
             }
@@ -36,7 +42,7 @@ function getCookie() {
 
 getCookie();
 
-// 修正后的 Env 模板
+// Env 模板保持不变
 function Env(name) {
     return new (class {
         constructor(name) {
@@ -48,12 +54,17 @@ function Env(name) {
             return $prefs.setValueForKey(val, key);
         }
 
-        msg(title = this.name, subtitle = "", message = "") {
-            $notify(title, subtitle, message);
+        msg(title = this.name, subtitle = "", message = "", options = {}) {
+            $notify(title, subtitle, message, options);
         }
 
         open(url) {
-            if (this.isQX) $app.openURL(url);
+            if (this.isQX) {
+                $app.openURL(url);
+            } else {
+                // 兼容Surge等其他环境
+                $notification.post("跳转快捷指令", "点击跳转", "", { url: url });
+            }
         }
     })(name);
 }
