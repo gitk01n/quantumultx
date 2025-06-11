@@ -20,11 +20,11 @@ function getCookie() {
                 // 存储原始Token
                 $.setdata(bearerToken, ckName);
                 
-                // 格式化Token
-                const formattedToken = `dlm set ${bearerToken}`;
+                // 格式化Token（示例：你可自定义格式）
+                const formattedToken = `dlm_token=${bearerToken}`; // 假设格式为 "参数=值"
                 
-                // 复制到剪贴板
-                $.copy(formattedToken);
+                // 复制到系统剪贴板（核心修改点）
+                copyToSystemClipboard(formattedToken); // 新增函数
                 
                 // 显示成功通知
                 $.msg($.name, "✅ Token获取成功", `已复制到剪贴板:\n${formattedToken.slice(0, 20)}...`);
@@ -38,9 +38,28 @@ function getCookie() {
     $done();
 }
 
+// 新增：系统剪贴板复制函数（适配 QX/Surge）
+function copyToSystemClipboard(text) {
+    if ($.isQX) { // Quantumult X 环境
+        // 使用 QX 原生剪贴板接口（需 iOS 14+，QX 版本支持）
+        $clipboard.writeText(text);
+    } else if ($.isSurge) { // Surge 环境
+        // Surge 需通过 $notification 间接触发剪贴板（部分版本支持）
+        $notification.post("📋 复制Token", "", text, {
+            sound: "default",
+            action: "copy",
+            userInfo: {
+                "clipboard": text
+            }
+        });
+    }
+    // 通用提示（保留原逻辑）
+    $.msg("📋 已复制", text.slice(0, 30) + (text.length > 30 ? "..." : ""));
+}
+
 getCookie();
 
-// 精简版Env工具类
+// 精简版Env工具类（原逻辑保留，新增剪贴板适配）
 function Env(name) {
     return new (class {
         constructor(name) {
@@ -64,6 +83,7 @@ function Env(name) {
             notice(title, subtitle, message, options);
         }
 
+        // 原 .copy() 方法保留（用于工具类内部存储，新增函数直接操作系统剪贴板）
         copy(text) {
             if (this.isQX) {
                 $prefs.setValueForKey(text, "clipboard_content");
