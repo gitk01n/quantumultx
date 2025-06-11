@@ -23,7 +23,7 @@ function getCookie() {
 
                 // 调用快捷指令（你设置好的名称）
                 const shortcutURL = "shortcuts://run-shortcut?name=dmlck";
-                $.open(shortcutURL);
+                $app.openURL(shortcutURL);
 
                 $.msg($.name, "✅ Token 获取成功", `内容已复制并唤起快捷指令`);
             } else {
