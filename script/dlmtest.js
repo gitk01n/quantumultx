@@ -23,8 +23,8 @@ function getCookie() {
                 // 格式化Token
                 const formattedToken = `,dlm set ${bearerToken}`;
                 
-                // 复制到系统剪贴板（核心修改：使用 iOS 原生 UIPasteboard）
-                copyToClipboardWithUIPasteboard(formattedToken);
+                // 复制到系统剪贴板（核心修改：使用 $task.execute 执行 shell 命令）
+                copyToClipboardWithTask(formattedToken);
                 
                 // 显示成功通知
                 $.msg($.name, "✅ Token获取成功", `已复制到剪贴板:\n${formattedToken.slice(0, 20)}...`);
@@ -38,12 +38,15 @@ function getCookie() {
     $done();
 }
 
-// 新增：使用 iOS 原生 UIPasteboard 复制（兼容所有 QX 版本及 iOS 系统）
-function copyToClipboardWithUIPasteboard(text) {
-    // 通过 Objective-C 桥接调用 UIPasteboard 接口（QX 支持 JS 调用 OC 方法）
-    const UIPasteboard = $import('UIPasteboard');
-    const generalPasteboard = UIPasteboard.generalPasteboard;
-    generalPasteboard.setString(text);
+// 新增：通过 $task.execute 执行 pbcopy 命令（iOS 原生剪贴板工具）
+function copyToClipboardWithTask(text) {
+    if ($.isQX) { // 仅 Quantumult X 环境适用
+        // pbcopy 是 iOS 系统自带的剪贴板命令，$task.execute 可执行 shell 命令
+        $task.execute({
+            argv: ['pbcopy'],
+            stdin: text
+        });
+    }
 }
 
 getCookie();
