@@ -18,13 +18,11 @@ function getCookie() {
             const bearerToken = authHeader.match(/Bearer\s+(\S+)/i)?.[1];
             if (bearerToken) {
                 $.setdata(bearerToken, ckName);
-
-                const formatted = `,dlm set ${bearerToken}`;
-                // 不能直接复制，改为通过 URL Scheme 传递参数给快捷指令
-                const encoded = encodeURIComponent(formatted);
+                const formatted = `,dlm set '${bearerToken}'`;
+                const encoded = encodeURIComponent(formatted); // 对内容进行 URL 编码
                 const shortcutURL = `shortcuts://run-shortcut?name=dmlck&input=${encoded}`;
 
-                $.msg($.name, "✅ Token 获取成功", `准备跳转快捷指令`);
+                $.msg($.name, "✅ Token 获取成功", `已准备跳转快捷指令`);
                 $.open(shortcutURL);
             } else {
                 $.msg($.name, "❌ Token 获取失败", "Authorization 格式错误");
@@ -38,7 +36,7 @@ function getCookie() {
 
 getCookie();
 
-// ✅ 精简后的 Env，仅包含 msg/open
+// 修正后的 Env 模板
 function Env(name) {
     return new (class {
         constructor(name) {
