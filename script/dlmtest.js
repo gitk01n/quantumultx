@@ -17,76 +17,87 @@ function getCookie() {
         if (authHeader) {
             const bearerToken = authHeader.match(/Bearer\s+(\S+)/i)?.[1];
             if (bearerToken) {
-                // 存储原始Token
+                // 1. 优先确保Token存储成功
                 $.setdata(bearerToken, ckName);
+                console.log("Token已存储");
                 
-                // 格式化Token用于快捷指令
-                const formattedToken = `,dlm set ${bearerToken}`;
+                // 2. 改进剪贴板写入方式
+                const formattedToken = `dlm set ${bearerToken}`;
+                if ($.isQX) {
+                    // Quantumult X环境
+                    $prefs.setValueForKey(formattedToken, "clipboard_content");
+                    console.log("QX剪贴板写入成功");
+                } else {
+                    // Surge/Loon环境
+                    $persistentStore.write(formattedToken, "clipboard_content");
+                    console.log("Surge/Loon剪贴板写入成功");
+                }
                 
-                // 存储到临时剪贴板
-                $.setdata(formattedToken, "temp_clipboard");
-                $.copy(formattedToken);
+                // 3. 更可靠的快捷指令跳转
+                const finalURL = `shortcuts://run-shortcut?name=dmlck&input=${encodeURIComponent(formattedToken)}`;
+                console.log("跳转URL: " + finalURL);
                 
-                // 准备跳转URL
-                const finalURL = `shortcuts://run-shortcut?name=dmlck&input=clipboard`;
-                
-                // 显示成功通知
-                $.msg($.name, "✅ Token获取成功", `Token已自动复制\n即将跳转快捷指令...`, {
-                    "open-url": finalURL
+                // 4. 改进的通知提示
+                $.msg($.name, "✅ Token获取成功", `点击通知即可跳转快捷指令\nToken: ${bearerToken.slice(0, 6)}...`, {
+                    "open-url": finalURL,
+                    "media-url": "https://example.com/icon.png" // 可选图标
                 });
                 
-                // 1.5秒后自动跳转
+                // 5. 双重跳转保障
                 setTimeout(() => {
                     $.open(finalURL);
-                }, 1500);
-            } else {
-                $.msg($.name, "❌ 获取失败", "Authorization格式不正确");
+                    $done();
+                }, 1000);
+                return;
             }
-        } else {
-            $.msg($.name, "❌ 获取失败", "请求头中未找到Authorization");
         }
     }
+    $.msg($.name, "❌ 获取失败", "请检查请求头或网络环境");
     $done();
 }
 
 getCookie();
 
-// 工具类
+// 增强版Env类
 function Env(name) {
     return new (class {
         constructor(name) {
             this.name = name;
-            this.isQX = typeof $task !== "undefined"; // 判断运行环境
+            this.isQX = typeof $task !== "undefined";
+            this.isSurge = typeof $httpClient !== "undefined";
+            console.log(`运行环境: ${this.isQX ? 'Quantumult X' : this.isSurge ? 'Surge' : 'Loon'}`);
         }
 
-        // 数据存储
         setdata(val, key) {
-            return $prefs.setValueForKey(val, key);
+            if (this.isQX) return $prefs.setValueForKey(val, key);
+            if (this.isSurge) return $persistentStore.write(val, key);
         }
 
-        // 数据读取
         getdata(key) {
-            return $prefs.valueForKey(key);
+            if (this.isQX) return $prefs.valueForKey(key);
+            if (this.isSurge) return $persistentStore.read(key);
         }
 
-        // 显示通知
         msg(title = this.name, subtitle = "", message = "", options = {}) {
-            $notify(title, subtitle, message, options);
+            if (this.isQX) $notify(title, subtitle, message, options);
+            if (this.isSurge) $notification.post(title, subtitle, message, options);
         }
 
-        // 打开URL
         open(url) {
-            if (this.isQX) {
-                $app.openURL(url);
-            } else {
-                $notification.post("跳转快捷指令", "点击跳转", "", { url: url });
-            }
+            if (this.isQX) $app.openURL(url);
+            if (this.isSurge) $notification.post("跳转", "", "", { url: url });
         }
 
-        // 复制文本
         copy(text) {
-            $prefs.setValueForKey(text, "clipboard_content");
-            $notify("已复制", text, "");
+            if (this.isQX) {
+                $prefs.setValueForKey(text, "clipboard_content");
+                console.log("QX复制成功: " + text);
+            }
+            if (this.isSurge) {
+                $persistentStore.write(text, "clipboard_content");
+                console.log("Surge复制成功: " + text);
+            }
+            this.msg("已复制", text.slice(0, 20) + (text.length > 20 ? "..." : ""));
         }
     })(name);
 }
