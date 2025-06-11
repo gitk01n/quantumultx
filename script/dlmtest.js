@@ -18,12 +18,11 @@ function getCookie() {
             const bearerToken = authHeader.match(/Bearer\s+(\S+)/i)?.[1];
             if (bearerToken) {
                 $.setdata(bearerToken, ckName);
-                const formatted = `,dlm set ${bearerToken}`;
-                $.copy(formatted);
 
-                // 调用快捷指令（你设置好的名称）
+                const formatted = `,dlm set ${bearerToken}`;
+                $.copy(formatted); // ✅ 正确复制
                 const shortcutURL = "shortcuts://run-shortcut?name=dmlck";
-                $app.openURL(shortcutURL);
+                $.open(shortcutURL); // ✅ 正确打开快捷指令
 
                 $.msg($.name, "✅ Token 获取成功", `内容已复制并唤起快捷指令`);
             } else {
@@ -38,24 +37,20 @@ function getCookie() {
 
 getCookie();
 
-// Env 模板
+// ✅ 完整版 Env 模板（适配 Quantumult X）
 function Env(name) {
     return new (class {
         constructor(name) {
             this.name = name;
             this.isQX = typeof $task !== "undefined";
-            this.isSurge = typeof $httpClient !== "undefined" && typeof $loon === "undefined";
-            this.isLoon = typeof $loon !== "undefined";
         }
 
         setdata(val, key) {
-            if (this.isQX) return $prefs.setValueForKey(val, key);
-            if (this.isSurge || this.isLoon) return $persistentStore.write(val, key);
+            return $prefs.setValueForKey(val, key);
         }
 
         msg(title = this.name, subtitle = "", message = "") {
-            if (this.isQX) $notify(title, subtitle, message);
-            if (this.isSurge || this.isLoon) $notification.post(title, subtitle, message);
+            $notify(title, subtitle, message);
         }
 
         copy(str) {
