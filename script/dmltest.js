@@ -3,7 +3,7 @@
 //半自动上传ck
 /**
 [rewrite_local]
-^https:\/\/game\.dominos\.com\.cn\/[^\/]+\/v2\/getUser\?openid=undefined url script-request-header https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/script/dlmcktest.js
+^https:\/\/game\.dominos\.com\.cn\/[^\/]+\/v2\/getUser\?openid=undefined url script-request-header https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/script/dmltest.js
 [MITM]
 hostname = game.dominos.com.cn
 **/
