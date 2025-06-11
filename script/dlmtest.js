@@ -20,11 +20,12 @@ function getCookie() {
                 $.setdata(bearerToken, ckName);
 
                 const formatted = `,dlm set ${bearerToken}`;
-                $.copy(formatted); // ✅ 正确复制
-                const shortcutURL = "shortcuts://run-shortcut?name=dmlck";
-                $.open(shortcutURL); // ✅ 正确打开快捷指令
+                // 不能直接复制，改为通过 URL Scheme 传递参数给快捷指令
+                const encoded = encodeURIComponent(formatted);
+                const shortcutURL = `shortcuts://run-shortcut?name=dmlck&input=${encoded}`;
 
-                $.msg($.name, "✅ Token 获取成功", `内容已复制并唤起快捷指令`);
+                $.msg($.name, "✅ Token 获取成功", `准备跳转快捷指令`);
+                $.open(shortcutURL);
             } else {
                 $.msg($.name, "❌ Token 获取失败", "Authorization 格式错误");
             }
@@ -37,7 +38,7 @@ function getCookie() {
 
 getCookie();
 
-// ✅ 完整版 Env 模板（适配 Quantumult X）
+// ✅ 精简后的 Env，仅包含 msg/open
 function Env(name) {
     return new (class {
         constructor(name) {
@@ -51,10 +52,6 @@ function Env(name) {
 
         msg(title = this.name, subtitle = "", message = "") {
             $notify(title, subtitle, message);
-        }
-
-        copy(str) {
-            if (this.isQX) $clipboard.set(str);
         }
 
         open(url) {
