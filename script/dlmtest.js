@@ -20,10 +20,12 @@ function getCookie() {
             if (bearerToken) {
                 $.setdata(bearerToken, ckName);
                 
-const formattedToken = `,dlm set ${bearerToken}`;
-$.setdata(formattedToken, "temp_clipboard"); // 临时存储
-$.copy(formattedToken); // 复制到系统剪贴板
-const shortcutURL = `shortcuts://run-shortcut?name=dmlck`;
+
+                const shortcutURL = `shortcuts://run-shortcut?name=dmlck&input=text&text=${encodeURIComponent(formattedToken)}`;
+                
+                
+                
+               
                 
                 $.msg($.name, "✅ Token 获取成功", `即将跳转处理...`, {
                     "open-url": finalURL
