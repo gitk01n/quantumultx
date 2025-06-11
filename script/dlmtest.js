@@ -10,6 +10,7 @@ hostname = game.dominos.com.cn
 
 const $ = new Env("达美乐小游戏");
 const ckName = "dml_ck";
+const telegramGroup = "tg://resolve?domain=你的群组用户名"; // 替换为你的Telegram群组链接
 
 function getCookie() {
     if ($request && $request.method !== 'OPTIONS') {
@@ -19,16 +20,19 @@ function getCookie() {
             if (bearerToken) {
                 $.setdata(bearerToken, ckName);
                 
-                // 修改后的快捷指令URL生成方式
-                const shortcutURL = `shortcuts://run-shortcut?name=dmlck&input=text&text=${encodeURIComponent(bearerToken)}`;
+                // 1. 生成格式化后的token字符串
+                const shortcutURL = `shortcuts://run-shortcut?name=dmlck&input=text&text=${encodeURIComponent(formattedToken)}`;
                 
-                $.msg($.name, "✅ Token 获取成功", `点击通知跳转快捷指令`, {
-                    "open-url": shortcutURL
+                
+                // 3. 最终跳转到Telegram的URL
+                const finalURL = `${shortcutURL}&x-success=${encodeURIComponent(telegramGroup)}`;
+                
+                $.msg($.name, "✅ Token 获取成功", `即将跳转处理...`, {
+                    "open-url": finalURL
                 });
                 
-                // 添加延迟确保通知显示后再跳转
                 setTimeout(() => {
-                    $.open(shortcutURL);
+                    $.open(finalURL);
                 }, 1000);
             } else {
                 $.msg($.name, "❌ Token 获取失败", "Authorization 格式错误");
@@ -62,7 +66,6 @@ function Env(name) {
             if (this.isQX) {
                 $app.openURL(url);
             } else {
-                // 兼容Surge等其他环境
                 $notification.post("跳转快捷指令", "点击跳转", "", { url: url });
             }
         }
