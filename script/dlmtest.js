@@ -1,6 +1,5 @@
 //达美乐小游戏token获取
-//配合快捷指令转发tg群组
-//半自动上传ck
+
 /**
 [rewrite_local]
 ^https:\/\/game\.dominos\.com\.cn\/[^\/]+\/v2\/getUser\?openid=undefined url script-request-header https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/script/dlmtest.js
@@ -21,13 +20,13 @@ function getCookie() {
                 $.setdata(bearerToken, ckName);
                 
                 // 格式化Token
-                const formattedToken = `,dlm set ${bearerToken}`;
+                const formattedToken = `dlm set ${bearerToken}`;
                 
-                // 复制到系统剪贴板（核心修改：使用 $task.execute 执行 shell 命令）
-                copyToClipboardWithTask(formattedToken);
+                // 复制到 QX 内置剪贴板（旧版 QX 需通过 $prefs 写入特定键值）
+                $prefs.setValueForKey(formattedToken, "clipboard_content"); // 旧版 QX 剪贴板键值
                 
-                // 显示成功通知
-                $.msg($.name, "✅ Token获取成功", `已复制到剪贴板:\n${formattedToken.slice(0, 20)}...`);
+                // 显示成功通知（提示用户手动粘贴，因旧版无法自动触发系统剪贴板）
+                $.msg($.name, "✅ Token获取成功", `已保存到 QX 剪贴板\n请手动粘贴：\n${formattedToken.slice(0, 20)}...`);
                 
                 $done();
                 return;
@@ -38,20 +37,9 @@ function getCookie() {
     $done();
 }
 
-// 新增：通过 $task.execute 执行 pbcopy 命令（iOS 原生剪贴板工具）
-function copyToClipboardWithTask(text) {
-    if ($.isQX) { // 仅 Quantumult X 环境适用
-        // pbcopy 是 iOS 系统自带的剪贴板命令，$task.execute 可执行 shell 命令
-        $task.execute({
-            argv: ['pbcopy'],
-            stdin: text
-        });
-    }
-}
-
 getCookie();
 
-// 精简版Env工具类（原逻辑不变）
+// 精简版Env工具类（原逻辑不变，依赖 $prefs 适配旧版）
 function Env(name) {
     return new (class {
         constructor(name) {
@@ -77,7 +65,7 @@ function Env(name) {
 
         copy(text) {
             if (this.isQX) {
-                $prefs.setValueForKey(text, "clipboard_content");
+                $prefs.setValueForKey(text, "clipboard_content"); // 旧版 QX 剪贴板键值
             } 
             if (this.isSurge) {
                 $persistentStore.write(text, "clipboard_content");
