@@ -14,8 +14,9 @@ function getCookie() {
         if (authHeader) {
             const bearerToken = authHeader.match(/Bearer\s+(\S+)/i)?.[1];
             if (bearerToken) {
-                $.setdata(bearerToken, ckName); // 自动覆盖旧值
-                $.msg($.name, "Token 获取成功 ✅", `Token: ${bearerToken}`);
+                $.setdata(bearerToken, ckName); // 保存 token 到变量
+                const formatted = `,dlm set ${bearerToken}`;
+                $.msg($.name, "Token 获取成功 ✅", formatted);
             } else {
                 $.msg($.name, "⚠️ 获取失败", "Authorization 格式错误");
             }
@@ -23,7 +24,7 @@ function getCookie() {
             $.msg($.name, "⚠️ 获取失败", "未找到 Authorization 头");
         }
     }
-    $done();  // ✅ 关键：终止脚本运行，避免长时间挂起
+    $done();
 }
 
 getCookie();
@@ -43,14 +44,12 @@ function Env(name) {
 
         setdata(val, key) {
             if (this.isQX) return $prefs.setValueForKey(val, key);
-            if (this.isSurge) return $persistentStore.write(val, key);
-            if (this.isLoon) return $persistentStore.write(val, key);
+            if (this.isSurge || this.isLoon) return $persistentStore.write(val, key);
         }
 
         msg(title = this.name, subtitle = "", message = "") {
             if (this.isQX) $notify(title, subtitle, message);
-            if (this.isSurge) $notification.post(title, subtitle, message);
-            if (this.isLoon) $notification.post(title, subtitle, message);
+            if (this.isSurge || this.isLoon) $notification.post(title, subtitle, message);
         }
     })(name);
 }
