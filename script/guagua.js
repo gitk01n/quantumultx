@@ -5,81 +5,91 @@
 hostname = smp-api.iyouke.com
 */
 const $ = new Env("guagua");
-// 获取 appid, Authorization 并签到的函数
-function fetchAppIdAndAuthAndSignIn(headers) {
-    // 从 userInfo 请求头中提取 appid 和 Authorization
-    const appId = headers['appid'];    // App ID
-    const authorization = headers['authorization']; // Authorization
-    if (!appId || !authorization) {
-        console.log('未找到 appid 或 Authorization');
-        $done({});
-        return;
+// iYouke (爱幽客) 签到脚本 (使用 MitM 从请求头获取 appId 和 Authorization)
+let appId = null;
+let authorization = null;
+// 获取 appId 和 Authorization
+if ($request) {
+    // 这是 request 阶段，用于获取 userInfo 的请求头
+    if ($request.url.includes("/dtapi/p/user/userInfo")) {
+        console.log("=====userInfo请求=======");
+        appId = $request.headers['appid'];
+        authorization = $request.headers['Authorization']; // 直接从请求头获取 Authorization
+        console.log("appid:" + appId);
+        console.log("Authorization:" + authorization);
+        // 存储 appId 和 Authorization
+        $prefs.setValueForKey(appId, "iyouke_appid");
+        $prefs.setValueForKey(authorization, "iyouke_authorization");
+        $notification.post("首次使用", "AppId, Authorization已获取", "即将开始签到");
+        // 获取成功立即签到
+        sign();
+    } else {
+        $done({}); // 非 userInfo 请求，直接结束
     }
-    console.log('appid 已获取：' + appId);
-    console.log('Authorization 已获取：' + authorization);
-    signIn(appId, authorization);  // 调用签到函数
+} else {
+    // 检查是否已经获取过 appId 和 Authorization
+    appId = $prefs.valueForKey("iyouke_appid");
+    authorization = $prefs.valueForKey("iyouke_authorization");
+    if (appId && authorization) {
+        console.log("已存在 appid 和 Authorization，开始签到");
+        sign();
+    } else {
+        console.log("未获取到 appid 和 Authorization，请先访问 userInfo");
+        $notification.post("提示", "未获取到 appid 和 Authorization", "请先访问 iYouke userInfo 接口");
+        $done({});
+    }
 }
-function signIn(appId, authorization) {
-    // 从你提供的请求体中提取信息
-    const baseUrl = "https://smp-api.iyouke.com/dtapi/pointsSign/user/sign";  // URL 基本部分
-    const version = "2.10.95";
-    const envVersion = "release";
-    // 获取当前日期，并格式化为 YYYY/MM/DD 形式
+function sign() {
+    console.log("开始执行签到");
+    // 获取当前日期
     const now = new Date();
     const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0'); // 月份从 0 开始
+    const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
-    const dateStr = `${year}/${month}/${day}`;
-    // 构建完整的签到 URL
-    const signInUrl = `${baseUrl}?date=${dateStr}`;
-    // 构建请求头
-    const signInHeaders = {
-        "Host": "smp-api.iyouke.com",
-        "Connection": "keep-alive",
-        "appId": appId,  // 使用从 userInfo 获取的 appid
-        "envVersion": envVersion,
-        "content-type": "application/json",
-        "Authorization": authorization, // 使用从 userInfo 获取的 Authorization
-        "xy-extra-data": `appid=${appId};version=${version};envVersion=${envVersion};senceId=1089`,
-        "version": version,
-        "Accept-Encoding": "gzip,compress,br,deflate",
-        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.57(0x18003932) NetType/4G Language/zh_CN",
-        "Referer": `https://servicewechat.com/${appId}/10/page-frame.html`
-    };
-    // 构建请求选项
+    const date = `${year}/${month}/${day}`;
+    console.log("日期" + date);
+    // 构造签到 URL
+    const sign_url = `https://smp-api.iyouke.com/dtapi/pointsSign/user/sign?date=${date}`;
+    console.log("签到url" + sign_url);
+    // 配置文件
     const options = {
-        hostname: 'smp-api.iyouke.com',
-        path: `${baseUrl}?date=${dateStr}`,
-        method: 'GET',
-        headers: signInHeaders  // 使用构建的请求头
-    };
-    // 发送请求 - 使用 $task.fetch 代替 https 模块
-     $task.fetch(options).then(response => {
-        const data = response.body;
-        try {
-            const responseJson = JSON.parse(data);
-            console.log(`签到接口响应: ${data}`); // 打印原始 JSON 字符串
-            // 在这里可以根据 responseJson 的内容判断签到是否成功
-            if (responseJson.success) { // 根据你实际的 JSON 结构判断
-                console.log("签到成功！");
-            } else {
-                console.log("签到失败。");
-                console.log(`错误信息: ${responseJson.message}`); // 打印错误信息
-            }
-        } catch (error) {
-            console.error(`JSON 解析出错: ${error}`);
-        } finally {
-            $done({}); //  确保在所有情况下都调用 $done
+        url: sign_url,
+        method: "GET",
+        headers: {
+            'Host': 'smp-api.iyouke.com',
+            'Connection': 'keep-alive',
+            'appId': appId, // 从 userInfo 获取的 appid
+            'envVersion': 'release',
+            'content-type': 'application/json',
+            'Authorization': authorization, //  Authorization
+            'xy-extra-data': `appid=${appId};version=2.10.95;envVersion=release;senceId=1089`,
+            'version': '2.10.95',
+            'Accept-Encoding': 'gzip,compress,br,deflate',
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.57(0x18003932) NetType/4G Language/zh_CN',
+            'Referer': `https://servicewechat.com/${appId}/10/page-frame.html`
         }
-    }, reason => {
-        console.log(reason.error);
-        $done();
-    });
+    };
+    // 发送请求
+    $task.fetch(options).then(response => {
+            const data = response.body;
+            try {
+                const res = JSON.parse(data);
+                var msgs = res.msg;
+                const msg = `签到结果: ${msgs}`;
+                $notification.post("签到", "执行结果", msg); // 别忘了推送
+                console.log(msg);
+            } catch (error) {
+                console.log("Json解析失败")
+                $notification.post("签到", "执行结果", "签到失败"); // 别忘了推送
+            }
+            $done()
+        },
+        reason => {
+            console.log("请求失败");
+            $notification.post("签到", "执行结果", "签到失败"); // 别忘了推送
+            $done()
+        })
 }
-// 获取请求头
-const headers = $request.headers;
-//  在脚本开始时，调用获取 appid, Authorization 并签到的函数
-fetchAppIdAndAuthAndSignIn(headers);
 // =================== Env 模板 ===================
 function Env(name) {
     return new (class {
