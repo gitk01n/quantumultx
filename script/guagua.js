@@ -5,8 +5,6 @@
 hostname = smp-api.iyouke.com
 */
 const $ = new Env("guagua");
-// save_token.js
-const https = require('https');
 // 获取 appid, Authorization 并签到的函数
 function fetchAppIdAndAuthAndSignIn(headers) {
     // 从 userInfo 请求头中提取 appid 和 Authorization
@@ -55,35 +53,28 @@ function signIn(appId, authorization) {
         method: 'GET',
         headers: signInHeaders  // 使用构建的请求头
     };
-    // 发送请求
-    const req = https.request(options, (res) => {
-        let data = '';
-        res.on('data', (chunk) => {
-            data += chunk;
-        });
-        res.on('end', () => {
-            try {
-                const responseJson = JSON.parse(data);
-                console.log(`签到接口响应: ${data}`); // 打印原始 JSON 字符串
-                // 在这里可以根据 responseJson 的内容判断签到是否成功
-                if (responseJson.success) { // 根据你实际的 JSON 结构判断
-                    console.log("签到成功！");
-                } else {
-                    console.log("签到失败。");
-                    console.log(`错误信息: ${responseJson.message}`); // 打印错误信息
-                }
-            } catch (error) {
-                console.error(`JSON 解析出错: ${error}`);
-            } finally {
-                $done({}); //  确保在所有情况下都调用 $done
+    // 发送请求 - 使用 $task.fetch 代替 https 模块
+     $task.fetch(options).then(response => {
+        const data = response.body;
+        try {
+            const responseJson = JSON.parse(data);
+            console.log(`签到接口响应: ${data}`); // 打印原始 JSON 字符串
+            // 在这里可以根据 responseJson 的内容判断签到是否成功
+            if (responseJson.success) { // 根据你实际的 JSON 结构判断
+                console.log("签到成功！");
+            } else {
+                console.log("签到失败。");
+                console.log(`错误信息: ${responseJson.message}`); // 打印错误信息
             }
-        });
+        } catch (error) {
+            console.error(`JSON 解析出错: ${error}`);
+        } finally {
+            $done({}); //  确保在所有情况下都调用 $done
+        }
+    }, reason => {
+        console.log(reason.error);
+        $done();
     });
-    req.on('error', (error) => {
-        console.error(`请求出错: ${error.message}`);
-        $done({}); // 确保在发生错误时也调用 $done
-    });
-    req.end();
 }
 // 获取请求头
 const headers = $request.headers;
