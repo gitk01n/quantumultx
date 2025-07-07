@@ -4,10 +4,6 @@
 [MITM]
 hostname = smp-api.iyouke.com
 */
-const $ = new Env('iYouke签到');
-// notify
-const notify = $.isNode() ? require('./sendNotify') : '';
-$.notifyMsg = [];
 let appId = null;
 let authorization = null;
 // 获取 appId 和 Authorization
@@ -17,12 +13,12 @@ if ($request) {
         console.log("=====userInfo请求=======");
         appId = $request.headers['appId'];
         authorization = $request.headers['Authorization']; // 直接从请求头获取 Authorization
-        console.log("appId:" + appId);
+        console.log("appid:" + appId);
         console.log("Authorization:" + authorization);
         // 存储 appId 和 Authorization
-        $.setValue(appId, "iyouke_appid");
-        $.setValue(authorization, "iyouke_authorization");
-        $.notifyMsg.push("首次使用", "AppId, Authorization已获取", "即将开始签到");
+        $prefs.setValueForKey(appId, "iyouke_appid");
+        $prefs.setValueForKey(authorization, "iyouke_authorization");
+        sendNotification("首次使用", "AppId, Authorization已获取", "即将开始签到");
         // 获取成功立即签到
         sign();
     } else {
@@ -30,14 +26,14 @@ if ($request) {
     }
 } else {
     // 检查是否已经获取过 appId 和 Authorization
-    appId = $.getValue("iyouke_appid");
-    authorization = $.getValue("iyouke_authorization");
+    appId = $prefs.valueForKey("iyouke_appid");
+    authorization = $prefs.valueForKey("iyouke_authorization");
     if (appId && authorization) {
         console.log("已存在 appid 和 Authorization，开始签到");
         sign();
     } else {
         console.log("未获取到 appid 和 Authorization，请先访问 userInfo");
-        $.notifyMsg.push("提示", "未获取到 appid 和 Authorization", "请先访问 iYouke userInfo 接口");
+        sendNotification("提示", "未获取到 appid 和 Authorization", "请先访问 iYouke userInfo 接口");
         $done({});
     }
 }
@@ -72,51 +68,36 @@ function sign() {
         }
     };
     // 发送请求
-    $.fetch(options).then(response => {
+    $task.fetch(options).then(response => {
             const data = response.body;
             try {
                 const res = JSON.parse(data);
                 var msgs = res.msg;
                 const msg = `签到结果: ${msgs}`;
-                $.notifyMsg.push("签到", "执行结果", msg);
+                sendNotification("签到", "执行结果", msg); // 别忘了推送
                 console.log(msg);
             } catch (error) {
                 console.log("Json解析失败")
-                $.notifyMsg.push("签到", "执行结果", "签到失败");
+                sendNotification("签到", "执行结果", "签到失败"); // 别忘了推送
             }
-             finally {
-                resolve();
-            }
+            $done()
         },
         reason => {
             console.log("请求失败");
-            $.notifyMsg.push("签到", "执行结果", "签到失败");
-            reject(reason);
+            sendNotification("签到", "执行结果", "签到失败"); // 别忘了推送
+            $done()
         })
-        .catch((err) => console.log(err))
-        .finally(() => {
-            $.done();
-            if ($.http) {
-                // Check if the environment supports closing the HTTP client
-                // Only close if `http` property exists on the `$` object.
-                $.http.close();
-            }
-        });
 }
-async function main() {
-    try {
-        await sign();
-    } catch (e) {
-        console.log(e);
-    } finally {
-        if (notify) {
-            await notify.sendNotify($.name, $.notifyMsg.join('\n'));
-        } else {
-             console.log($.name + ": " + $.notifyMsg.join('\n'));
-        }
+// 定义一个 sendNotification 函数，用来发送通知或输出日志
+function sendNotification(title, subtitle, message) {
+    if (typeof $notification !== 'undefined') {
+        // 如果支持 $notification，则发送通知
+        $notification.post(title, subtitle, message);
+    } else {
+        // 否则，输出到控制台
+        console.log(`${title} - ${subtitle} - ${message}`);
     }
 }
-main();
 // =================== Env 模板 ===================
 function Env(name) {
     return new (class {
