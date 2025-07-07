@@ -4,8 +4,10 @@
 [MITM]
 hostname = smp-api.iyouke.com
 */
-const $ = new Env("guagua");
-// iYouke (爱幽客) 签到脚本 (使用 MitM 从请求头获取 appId 和 Authorization)
+const $ = new Env('iYouke签到');
+// notify
+const notify = $.isNode() ? require('./sendNotify') : '';
+$.notifyMsg = [];
 let appId = null;
 let authorization = null;
 // 获取 appId 和 Authorization
@@ -13,14 +15,14 @@ if ($request) {
     // 这是 request 阶段，用于获取 userInfo 的请求头
     if ($request.url.includes("/dtapi/p/user/userInfo")) {
         console.log("=====userInfo请求=======");
-        appId = $request.headers['appid'];
+        appId = $request.headers['appId'];
         authorization = $request.headers['Authorization']; // 直接从请求头获取 Authorization
-        console.log("appid:" + appId);
+        console.log("appId:" + appId);
         console.log("Authorization:" + authorization);
         // 存储 appId 和 Authorization
-        $prefs.setValueForKey(appId, "iyouke_appid");
-        $prefs.setValueForKey(authorization, "iyouke_authorization");
-        $notification.post("首次使用", "AppId, Authorization已获取", "即将开始签到");
+        $.setValue(appId, "iyouke_appid");
+        $.setValue(authorization, "iyouke_authorization");
+        $.notifyMsg.push("首次使用", "AppId, Authorization已获取", "即将开始签到");
         // 获取成功立即签到
         sign();
     } else {
@@ -28,14 +30,14 @@ if ($request) {
     }
 } else {
     // 检查是否已经获取过 appId 和 Authorization
-    appId = $prefs.valueForKey("iyouke_appid");
-    authorization = $prefs.valueForKey("iyouke_authorization");
+    appId = $.getValue("iyouke_appid");
+    authorization = $.getValue("iyouke_authorization");
     if (appId && authorization) {
         console.log("已存在 appid 和 Authorization，开始签到");
         sign();
     } else {
         console.log("未获取到 appid 和 Authorization，请先访问 userInfo");
-        $notification.post("提示", "未获取到 appid 和 Authorization", "请先访问 iYouke userInfo 接口");
+        $.notifyMsg.push("提示", "未获取到 appid 和 Authorization", "请先访问 iYouke userInfo 接口");
         $done({});
     }
 }
@@ -70,26 +72,51 @@ function sign() {
         }
     };
     // 发送请求
-    $task.fetch(options).then(response => {
+    $.fetch(options).then(response => {
             const data = response.body;
             try {
                 const res = JSON.parse(data);
                 var msgs = res.msg;
                 const msg = `签到结果: ${msgs}`;
-                $notification.post("签到", "执行结果", msg); // 别忘了推送
+                $.notifyMsg.push("签到", "执行结果", msg);
                 console.log(msg);
             } catch (error) {
                 console.log("Json解析失败")
-                $notification.post("签到", "执行结果", "签到失败"); // 别忘了推送
+                $.notifyMsg.push("签到", "执行结果", "签到失败");
             }
-            $done()
+             finally {
+                resolve();
+            }
         },
         reason => {
             console.log("请求失败");
-            $notification.post("签到", "执行结果", "签到失败"); // 别忘了推送
-            $done()
+            $.notifyMsg.push("签到", "执行结果", "签到失败");
+            reject(reason);
         })
+        .catch((err) => console.log(err))
+        .finally(() => {
+            $.done();
+            if ($.http) {
+                // Check if the environment supports closing the HTTP client
+                // Only close if `http` property exists on the `$` object.
+                $.http.close();
+            }
+        });
 }
+async function main() {
+    try {
+        await sign();
+    } catch (e) {
+        console.log(e);
+    } finally {
+        if (notify) {
+            await notify.sendNotify($.name, $.notifyMsg.join('\n'));
+        } else {
+             console.log($.name + ": " + $.notifyMsg.join('\n'));
+        }
+    }
+}
+main();
 // =================== Env 模板 ===================
 function Env(name) {
     return new (class {
