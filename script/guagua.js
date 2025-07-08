@@ -90,13 +90,15 @@ function sign() {
 }
 // 定义一个 sendNotification 函数，用来发送通知或输出日志
 function sendNotification(title, subtitle, message) {
-    if (typeof $notification !== 'undefined') {
-        // 如果支持 $notification，则发送通知
-        $notification.post(title, subtitle, message);
-    } else {
-        // 否则，输出到控制台
-        console.log(`${title} - ${subtitle} - ${message}`);
-    }
+  if (typeof $notify !== 'undefined') {
+    $notify(title, subtitle, message);
+  } else if (typeof $notification !== 'undefined') {
+      // 如果支持 $notification，则发送通知
+      $notification.post(title, subtitle, message);
+  } else {
+      // 否则，输出到控制台
+      console.log(`${title} - ${subtitle} - ${message}`);
+  }
 }
 // =================== Env 模板 ===================
 function Env(name) {
@@ -110,12 +112,10 @@ function Env(name) {
             this.isSurge = typeof $httpClient !== "undefined" && typeof $loon === "undefined";
             this.isNode = typeof require === "function" && !this.isQX && !this.isSurge && !this.isLoon;
         }
-
         setdata(val, key) {
             if (this.isQX) return $prefs.setValueForKey(val, key);
             if (this.isSurge || this.isLoon) return $persistentStore.write(val, key);
         }
-
         msg(title = this.name, subtitle = "", message = "") {
             if (this.isQX) $notify(title, subtitle, message);
             if (this.isSurge || this.isLoon) $notification.post(title, subtitle, message);
