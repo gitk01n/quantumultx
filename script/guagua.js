@@ -73,9 +73,16 @@ function sign() {
             console.log("完整签到返回数据:", data); // 打印完整的响应数据
             try {
                 const res = JSON.parse(data);
-                // 尝试安全地获取签到消息，避免 undefined 错误
-                const msgs = res?.msg || res?.message || "签到结果未知"; // 优先使用 res.msg，如果不存在则使用 res.message，如果都没有则使用默认值
-                const msg = `签到结果: ${msgs}`;
+                const log = res?.log || "未获取到签到日志"; // 尝试获取 "log" 字段，如果不存在则使用默认值
+                let signResult = "";
+                if (log.includes("签到成功")) {
+                    signResult = "签到成功";
+                } else if (log.includes("重复签到")) {
+                    signResult = "重复签到";
+                } else {
+                    signResult = "签到失败";
+                }
+                const msg = `签到结果: ${signResult}, 日志: ${log}`;
                 sendNotification("签到", "执行结果", msg); // 别忘了推送
                 console.log(msg);
             } catch (error) {
