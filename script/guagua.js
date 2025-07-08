@@ -73,18 +73,16 @@ function sign() {
             console.log("完整签到返回数据:", data); // 打印完整的响应数据
             try {
                 const res = JSON.parse(data);
-                const log = res?.log || "未获取到签到日志"; // 尝试获取 "log" 字段，如果不存在则使用默认值
-                let signResult = "";
-                if (log.includes("签到成功")) {
-                    signResult = "签到成功";
-                } else if (log.includes("重复签到")) {
-                    signResult = "重复签到";
+                let message = "";
+                if (res?.success === true) {
+                    message = "签到成功";
+                } else if (res?.success === false) {
+                    message = res?.error_msg || res?.errorMsg || "签到失败，原因未知"; // 优先使用 error_msg，然后errorMsg，都没有则使用默认值
                 } else {
-                    signResult = "签到失败";
+                    message = "签到状态未知，请查看日志";
                 }
-                const msg = `签到结果: ${signResult}, 日志: ${log}`;
-                sendNotification("签到", "执行结果", msg); // 别忘了推送
-                console.log(msg);
+                sendNotification("签到", "执行结果", message); // 别忘了推送
+                console.log(message);
             } catch (error) {
                 console.error("JSON解析失败:", error);
                 sendNotification("签到", "执行结果", "签到失败，JSON解析错误"); // 别忘了推送
