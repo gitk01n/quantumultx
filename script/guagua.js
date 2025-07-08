@@ -70,21 +70,23 @@ function sign() {
     // 发送请求
     $task.fetch(options).then(response => {
             const data = response.body;
+            console.log("完整签到返回数据:", data); // 打印完整的响应数据
             try {
                 const res = JSON.parse(data);
-                var msgs = res.msg;
+                // 尝试安全地获取签到消息，避免 undefined 错误
+                const msgs = res?.msg || res?.message || "签到结果未知"; // 优先使用 res.msg，如果不存在则使用 res.message，如果都没有则使用默认值
                 const msg = `签到结果: ${msgs}`;
                 sendNotification("签到", "执行结果", msg); // 别忘了推送
                 console.log(msg);
             } catch (error) {
-                console.log("Json解析失败")
-                sendNotification("签到", "执行结果", "签到失败"); // 别忘了推送
+                console.error("JSON解析失败:", error);
+                sendNotification("签到", "执行结果", "签到失败，JSON解析错误"); // 别忘了推送
             }
             $done()
         },
         reason => {
-            console.log("请求失败");
-            sendNotification("签到", "执行结果", "签到失败"); // 别忘了推送
+            console.error("请求失败:", reason);
+            sendNotification("签到", "执行结果", "签到失败，请求错误"); // 别忘了推送
             $done()
         })
 }
