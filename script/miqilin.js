@@ -18,7 +18,7 @@ ck有效期只有半小时,每周一获取ck后手动运行脚本
 重写：打开微信小程序,点击探索+获取
 
 [Script]
-cron "0 15 13 * * 1" script-path=https://gist.githubusercontent.com/Sliverkiss/49c5d5176cad6e47919ffe058606ed0d/raw/michelin.js, timeout=300, tag=米其林会员俱乐部
+cron "0 15 13 * * 1" script-path=https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/script/miqilin.js, timeout=300, tag=米其林会员俱乐部
 http-request ^https:\/\/ulp\.michelin\.com\.cn\/bff\/profile script-path=https://gist.githubusercontent.com/Sliverkiss/49c5d5176cad6e47919ffe058606ed0d/raw/michelin.js, timeout=10, tag=米其林俱乐部token
 
 [Mitm]
