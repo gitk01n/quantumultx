@@ -88,7 +88,7 @@ async function executeSingleUserTasks(user) {
         for (let i = 0; i < 20; i++) {
             await user.luckyDraw();
         }
-        // //新品畅游
+        // //新品畅游 (此任务目前被注释掉，若需要可取消注释)
         // await user.getScore();
         //打印通知
         let userRes = await user.userInfo();
@@ -149,7 +149,7 @@ class UserInfo {
                 //查找对应题目答案
                 let detail = $.stdAnswers.find(answer => theQuestion == answer.npsQuestionChoisePk) || {};
                 let answer = options.find(o => o.npsQuestionChoiseOptionPk == detail.npsQuestionChoiseOptionPk);
-                if (!answer) answer = options[0];
+                if (!answer) answer = options[0]; // 如果没有找到匹配的答案，默认选择第一个选项
                 //提交答案
                 let answerRes = await this.answer(theQuestion, answer?.npsQuestionChoiseOptionPk);
                 $.log(`\n答案: ${answer.optionHtml} => ${answerRes}`);
@@ -296,14 +296,20 @@ async function getCookie() {
             $.setdata(tokenValue, ckName);
             $.msg($.name, "", "获取签到Cookie成功🎉，正在执行任务...");
 
-            // 成功获取token后，立即执行任务
+            // 确保 SakuraUtil 加载成功
+            if (!$.SakuraUtils) {
+                console.log("SakuraUtil 未加载，尝试加载...");
+                const loadSuccess = await loadModule();
+                if (!loadSuccess) {
+                    $.msg($.name, "", "❌加载辅助模块失败，无法执行任务！");
+                    return; // 加载失败直接返回
+                }
+            }
+
             try {
-                // 创建一个 UserInfo 实例来代表当前用户
-                // 这里我们假设每次捕获到的token是单个用户的，如果是多用户，需要进一步处理
                 let currentUser = new UserInfo({ token: tokenValue });
-                
-                // 为了保证通知机制一致，我们需要清空一次全局通知数组
-                $.notifyMsg = []; 
+                // 清空全局通知数组，确保当前任务的通知是独立的
+                $.notifyMsg = [];
 
                 await executeSingleUserTasks(currentUser);
 
@@ -313,6 +319,7 @@ async function getCookie() {
 
             } catch (e) {
                 $.msg($.name, "", `❌执行任务失败：${e.message || e}`);
+                console.log(`执行任务异常: ${e.stack}`); // 打印完整堆栈，方便调试
             }
 
         } else {
@@ -325,10 +332,12 @@ async function getCookie() {
 async function loadModule() {
     try {
         //加载Sakura多功能工具模块
+        // 强制每次执行时都尝试加载，确保在代理环境中可用
         $.SakuraUtils = await loadSakuraUtils();
         return $.SakuraUtils ? true : false;
     } catch (e) {
-        throw new Error(`❌loadModule run error => ${e}`)
+        console.log(`❌loadModule run error => ${e}`);
+        return false; // 返回 false 表示加载失败
     }
 }
 //自动生成token
@@ -515,26 +524,50 @@ async function loadSakuraUtils() {
             const SakuraUtil = creatUtils();
             console.log(`✅SakuraUtil加载成功,请继续`);
             resolve(SakuraUtil)
-        })
+        }).catch(e => {
+            console.error(`❌从CDN下载SakuraUtil失败: ${e}`);
+            resolve(null); // 返回null表示加载失败
+        });
     })
 };
 
 //---------------------- 主程序执行入口 -----------------------------------
 !(async () => {
+    // 无论在什么环境下，都先尝试加载模块
+    // 这确保了在 $request 存在时，也能提前加载 SakuraUtil
+    const moduleLoaded = await loadModule();
+    if (!moduleLoaded) {
+        // 如果模块加载失败，且不是在代理请求模式下（即是定时任务），则直接抛出错误
+        // 在代理模式下，错误会在 getCookie 内部处理并通知
+        if (typeof $request == "undefined") {
+            throw new Error(`❌加载模块失败，请检查模块路径是否正常`);
+        } else {
+            // 在代理模式下，如果模块加载失败，getCookie 已经处理了通知
+            $.done({ ok: 0 }); // 结束脚本
+            return;
+        }
+    }
+
     if (typeof $request != "undefined") {
         await getCookie(); // 如果是代理捕获请求，则执行获取Cookie并触发任务
     } else {
-        // 如果是定时任务环境（Node.js），则继续加载模块和检查环境变量，然后执行main
-        if (!(await loadModule())) throw new Error(`❌加载模块失败，请检查模块路径是否正常`);
+        // 如果是定时任务环境（Node.js），则继续检查环境变量，然后执行main
         if (!(await checkEnv())) throw new Error(`❌未检测到ck，请添加环境变量`);
         if (userList.length > 0) await main();
     }
 })()
-    .catch(e => $.notifyMsg.push(e.message || e))
+    .catch(e => {
+        // 捕获顶层未处理的错误，并推送到通知列表
+        const errorMessage = e.message || e;
+        if ($.notifyMsg.indexOf(errorMessage) === -1) { // 避免重复添加
+             $.notifyMsg.push(errorMessage);
+        }
+    })
     .finally(async () => {
-        // 在定时任务环境下发送通知，getCookie中已单独处理
-        if (typeof $request == "undefined") {
-            await SendMsgList($.notifyList);
+        // 只有在非代理请求模式下（即定时任务模式）才在这里统一发送通知
+        // 因为在 getCookie 中已经单独处理了代理模式下的通知
+        if (typeof $request == "undefined" || $.notifyList.length > 0) { // 确保代理模式下有通知也发送
+             await SendMsgList($.notifyList);
         }
         $.done({ ok: 1 });
     });
