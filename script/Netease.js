@@ -46,4 +46,4 @@ http-response ^https?:\/\/(?:ipv4|interface\d?)\.music\.163\.com\/eapi\/link\/po
 http-response ^https?:\/\/(?:ipv4|interface\d?)\.music\.163\.com\/eapi\/user\/follow\/users\/mixed\/get script-path = https://raw.githubusercontent.com/sooyaaabo/Loon/main/Script/NeteaseMusic/NeteaseMusicAds.js, requires-body = true, binary-body-mode = true, timeout = 20, tag = [网易云音乐]显示未关注你的人
 
 [MitM]
-hostname = interface.music.163.com, interface3.music.163.com, ipv4.music.163.com, interface9.music.163.com
+hostname = interface.music.163.com, interface*.music.163.com, ipv4.music.163.com
