@@ -11,3 +11,4 @@ HOST-SUFFIX,downupdate.bdy.tcdnos.com,REJECT
 HOST-SUFFIX,downupdate.bdy.tcdnos.com,REJECT
 HOST-SUFFIX,downupdate.csysw.tcdnos.com,REJECT
 HOST-SUFFIX,down-update.mid.dcloudstc.com,REJECT
+HOST-SUFFIX,ias.tencent-cloud.net,REJECT
