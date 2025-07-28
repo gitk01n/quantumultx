@@ -6,3 +6,4 @@
 HOST-SUFFIX,down.pandora.qq.com,REJECT
 HOST-KEYWORD,dlied1,REJECT
 HOST-SUFFIX,down-update.qq.com,REJECT
+HOST-SUFFIX,apd-pcdnvodstat.teg.tencent-cloud.net,REJECT
