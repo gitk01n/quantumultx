@@ -1,0 +1,8 @@
+# NAME: Timi
+# AUTHOR: gitk01n
+# REPO: https://github.com/gitk01n/Rule
+# UPDATED: 2025-7-28 09:17:29
+
+HOST-SUFFIX,down.pandora.qq.com,REJECT
+HOST-KEYWORD,dlied1,REJECT
+HOST-SUFFIX,down-update.qq.com,REJECT
