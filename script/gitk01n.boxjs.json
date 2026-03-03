@@ -15,10 +15,7 @@
                 "https://qn.whyour.cn/logo.png"
             ],
             "keys": [
-                "QL_HOST",
-                "QL_ID",
-                "QL_SEC",
-                "AUTO_SYNC"
+                "QL_HOST","QL_ID","QL_SEC","AUTO_SYNC"
             ],
             "inject": {
                 "global": "https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/script/qlSync.js"
@@ -31,7 +28,7 @@
                     "type": "textarea",
                     "autoGrow": true,
                     "rows": 1,
-                    "desc": "示例：http://127.0.0.1:5700，末尾不要带 /"
+                    "desc": "示例：http://127.0.0.1:5700，末尾不要带/"
                 },
                 {
                     "id": "QL_ID",
@@ -53,7 +50,7 @@
                 },
                 {
                     "id": "AUTO_SYNC",
-                    "name": "🔁 全局自动同步",
+                    "name": "🔁 自动同步总开关",
                     "val": false,
                     "type": "boolean",
                     "desc": "开启后：任何脚本写入变量，自动实时同步到青龙"
