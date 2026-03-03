@@ -1,201 +1,121 @@
-const $ = new Env("gitk01n_BoxJS变量实时同步青龙");
+// == 全局变量自动同步青龙 (劫持版) ==
+// 功能：任何脚本执行 $persistentStore.write 时，自动同步该变量到青龙
+// 触发：无需手动操作，脚本运行自动触发
 
-// 读取配置
-const QL_HOST = $.getenv("QL_HOST")?.trim();
-const QL_ID = $.getenv("QL_ID")?.trim();
-const QL_SEC = $.getenv("QL_SEC")?.trim();
-const AUTO_SYNC = $.getenv("AUTO_SYNC") === "true";
+(async () => {
+    // 防止重复注入
+    if (window.__qlSyncInjected) return;
+    window.__qlSyncInjected = true;
 
-// 不同步的内置变量
-const ignoreKeys = [
-  "QL_HOST",
-  "QL_ID",
-  "QL_SEC",
-  "AUTO_SYNC"
-];
+    const SCRIPT_NAME = "🔁 全局同步青龙";
+    const IGNORE_KEYS = ["QL_HOST", "QL_ID", "QL_SEC", "AUTO_SYNC"];
+    
+    // 1. 读取配置
+    const getConfig = () => ({
+        host: $persistentStore.read("QL_HOST")?.trim() || "",
+        id: $persistentStore.read("QL_ID")?.trim() || "",
+        sec: $persistentStore.read("QL_SEC")?.trim() || "",
+        enable: $persistentStore.read("AUTO_SYNC") === "true"
+    });
 
-// 缓存上一次变量，用于对比变化
-let lastEnv = {};
+    // 2. 获取青龙 Token 并缓存
+    let qlToken = null;
+    let tokenExpire = 0; // 缓存过期时间
 
-!(async () => {
-  if (!QL_HOST || !QL_ID || !QL_SEC) {
-    console.log("❌ 请先填写 QL_HOST、QL_ID、QL_SEC");
-    $.done();
-    return;
-  }
-
-  if (!AUTO_SYNC) {
-    console.log("ℹ️ 自动同步已关闭");
-    $.done();
-    return;
-  }
-
-  console.log("✅ 已启动 BoxJS 变量监听，新增/修改将自动同步青龙");
-
-  // 先获取一次 token
-  const token = await getQlToken();
-  if (!token) {
-    console.log("❌ 青龙 Token 获取失败");
-    $.done();
-    return;
-  }
-
-  // 初始化环境快照
-  lastEnv = getAllEnv();
-
-  // 开始轮询监听（BoxJS 无原生 hook，用轻量监听实现）
-  setInterval(async () => {
-    if (!AUTO_SYNC) return;
-
-    const currentEnv = getAllEnv();
-    const changedKeys = [];
-
-    // 对比：新增 / 修改
-    for (const key in currentEnv) {
-      if (ignoreKeys.includes(key)) continue;
-      const oldVal = lastEnv[key];
-      const newVal = currentEnv[key];
-      if (newVal !== undefined && oldVal !== newVal) {
-        changedKeys.push(key);
-      }
-    }
-
-    // 有变化立即同步
-    if (changedKeys.length > 0) {
-      console.log(`\n🔍 检测到变量变化：${changedKeys.join(", ")}`);
-      for (const key of changedKeys) {
-        await syncOneKey(key, currentEnv[key], token);
-        await sleep(150);
-      }
-      // 更新快照
-      lastEnv = { ...currentEnv };
-    }
-  }, 1000);
-
-})().catch(e => {
-  console.log("❌ 异常：", e);
-  $.done();
-});
-
-// ==============================================
-// 同步单个变量（存在=更新，不存在=新增）
-// ==============================================
-async function syncOneKey(name, value, token) {
-  try {
-    const headers = {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
+    const getToken = async (config) => {
+        if (Date.now() < tokenExpire && qlToken) return qlToken;
+        try {
+            const res = await $task.fetch({
+                url: `${config.host}/open/auth/token?client_id=${config.id}&client_secret=${config.sec}`
+            });
+            const data = JSON.parse(res.body);
+            if (data.code === 200) {
+                qlToken = data.data.token;
+                tokenExpire = Date.now() + 30 * 60 * 1000; // 缓存30分钟
+                return qlToken;
+            }
+        } catch (e) {}
+        throw new Error("获取Token失败");
     };
 
-    // 查询是否已存在
-    const searchRes = await $.get(`${QL_HOST}/open/envs?searchValue=${name}`, headers);
-    const searchData = JSON.parse(searchRes);
-    const item = searchData?.data?.find(i => i.name === name);
+    // 3. 同步单个变量到青龙
+    const syncToQL = async (key, value) => {
+        const config = getConfig();
+        // 开关关闭、配置缺失、忽略列表 直接返回
+        if (!config.enable || !config.host || !config.id || !config.sec || IGNORE_KEYS.includes(key)) {
+            return;
+        }
+        // 空值不同步
+        if (value === null || value === undefined || value === "") {
+            return;
+        }
 
-    if (item) {
-      await $.put(`${QL_HOST}/open/envs`, headers, JSON.stringify({
-        id: item.id,
-        name: name,
-        value: value
-      }));
-      console.log(`✅ 已更新：${name}`);
-    } else {
-      await $.post(`${QL_HOST}/open/envs`, headers, JSON.stringify({ name, value }));
-      console.log(`✅ 已新增：${name}`);
-    }
-  } catch (e) {
-    console.log(`❌ 同步失败：${name}`);
-  }
-}
+        try {
+            const token = await getToken(config);
+            const headers = {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            };
 
-// ==============================================
-// 获取青龙 OpenApi Token
-// ==============================================
-async function getQlToken() {
-  try {
-    const url = `${QL_HOST}/open/auth/token?client_id=${QL_ID}&client_secret=${QL_SEC}`;
-    const res = await $.get(url);
-    const data = JSON.parse(res);
-    return data?.data?.token;
-  } catch (e) {
-    return null;
-  }
-}
+            // 先查询是否存在
+            const searchRes = await $task.fetch({
+                url: `${config.host}/open/envs?searchValue=${key}`,
+                headers: headers
+            });
+            const searchData = JSON.parse(searchRes.body);
+            const existItem = searchData.data?.find(item => item.name === key);
 
-// ==============================================
-// 获取全部环境变量（排除系统）
-// ==============================================
-function getAllEnv() {
-  const env = {};
-  try {
-    for (const key in process.env) {
-      if (ignoreKeys.includes(key)) continue;
-      env[key] = process.env[key];
-    }
-  } catch (e) {}
-  return env;
-}
+            let res, action;
+            if (existItem) {
+                // 存在则更新
+                res = await $task.fetch({
+                    url: `${config.host}/open/envs`,
+                    method: "PUT",
+                    headers: headers,
+                    body: JSON.stringify({
+                        id: existItem.id,
+                        name: key,
+                        value: value
+                    })
+                });
+                action = "更新";
+            } else {
+                // 不存在则新增
+                res = await $task.fetch({
+                    url: `${config.host}/open/envs`,
+                    method: "POST",
+                    headers: headers,
+                    body: JSON.stringify({
+                        name: key,
+                        value: value
+                    })
+                });
+                action = "新增";
+            }
 
-function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
+            const result = JSON.parse(res.body);
+            if (result.code === 200) {
+                console.log(`[${SCRIPT_NAME}] ✅ ${action}: ${key}`);
+            } else {
+                throw new Error(result.message || "接口错误");
+            }
+        } catch (e) {
+            console.log(`[${SCRIPT_NAME}] ❌ 同步${key}失败: ${e.message}`);
+        }
+    };
 
-// ==============================================
-// BoxJS 运行环境
-// ==============================================
-function Env(name) {
-  this.name = name;
-  this.env = {};
-  this.getenv = (key) => process.env[key] || "";
-  this.log = console.log;
-  this.done = () => {};
+    // 4. 核心：劫持 $persistentStore.write 方法
+    const originalWrite = $persistentStore.write;
+    $persistentStore.write = function (value, key) {
+        // 1. 执行原生方法：写入 BoxJS（必须保留，不影响原脚本逻辑）
+        const result = originalWrite.call(this, value, key);
+        
+        // 2. 异步执行同步：不阻塞原脚本的运行
+        syncToQL(key, value).catch(err => console.error(err));
+        
+        // 3. 返回原生结果
+        return result;
+    };
 
-  this.get = (url, headers) => {
-    return new Promise((resolve) => {
-      require("http").get(url, { headers }, (res) => {
-        let d = "";
-        res.on("data", c => d += c);
-        res.on("end", () => resolve(d));
-      }).on("error", () => resolve(""));
-    });
-  };
-
-  this.post = (url, headers, body) => {
-    return new Promise((resolve) => {
-      const u = new URL(url);
-      const req = require("http").request({
-        hostname: u.hostname,
-        port: u.port,
-        path: u.pathname + u.search,
-        method: "POST",
-        headers
-      }, res => {
-        let d = "";
-        res.on("data", c => d += c);
-        res.on("end", () => resolve(d));
-      });
-      req.write(body);
-      req.end();
-    });
-  };
-
-  this.put = (url, headers, body) => {
-    return new URL(url);
-    return new Promise((resolve) => {
-      const u = new URL(url);
-      const req = require("http").request({
-        hostname: u.hostname,
-        port: u.port,
-        path: u.pathname + u.search,
-        method: "PUT",
-        headers
-      }, res => {
-        let d = "";
-        res.on("data", c => d += c);
-        res.on("end", () => resolve(d));
-      });
-      req.write(body);
-      req.end();
-    });
-  };
-}
+    console.log(`[${SCRIPT_NAME}] ✅ 全局劫持已生效`);
+})();
