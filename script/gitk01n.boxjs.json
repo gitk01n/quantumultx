@@ -15,12 +15,16 @@
                 "https://qn.whyour.cn/logo.png"
             ],
             "keys": [
-                "QL_HOST","QL_ID","QL_SEC","AUTO_SYNC"
+                "QL_HOST",
+                "QL_ID",
+                "QL_SEC",
+                "AUTO_SYNC"
             ],
             "scripts": [
                 {
-                    "name": "同步变量到青龙(填写ckName，保存，执行)",
-                    "script": "https://raw.githubusercontent.com/xxx/qlSync.js"#同步脚本#
+                    "name": "同步变量到青龙(保存，执行)",
+                    "script": "https://raw.githubusercontent.com/xxx/qlSync.js",
+                    "desc": "同步脚本"
                 }
             ],
             "settings": [
@@ -34,7 +38,7 @@
                     "desc": "填入服务器地址，不包括/，如http://127.0.0.1:5700"
                 },
                 {
-                    "id": "QL_ID"                  ",
+                    "id": "QL_ID",
                     "name": "clientId",
                     "val": "",
                     "type": "textarea",
@@ -53,10 +57,12 @@
                 },
                 {
                     "id": "AUTO_SYNC",
-                    "name": "autosync",
-                    "val": "false",
+                    "name": "自动同步开关",
+                    "val": false,
                     "type": "boolean",
-                    "desc": "是否开启自动同步默认关闭"
-                 }
+                    "desc": "是否开启自动同步，默认关闭"
+                }
             ]
         }
+    ]
+}
