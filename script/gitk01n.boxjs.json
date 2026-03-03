@@ -1,0 +1,62 @@
+{
+    "id": "gitk01n.sub",
+    "name": "gitk01n脚本订阅",
+    "author": "@gitk01n",
+    "icon": "https://raw.githubusercontent.com/Sliverkiss/QuantumultX/main/icon/sakura.png",
+    "repo": "",
+    "apps": [
+        {
+            "id": "gitk01n_QingLong",
+            "name": "自动同步青龙面板配置",
+            "author": "@gitk01n",
+            "repo": "",
+            "icons": [
+                "https://qn.whyour.cn/logo.png",
+                "https://qn.whyour.cn/logo.png"
+            ],
+            "keys": [
+                "QL_HOST","QL_ID","QL_SEC","AUTO_SYNC"
+            ],
+            "scripts": [
+                {
+                    "name": "同步变量到青龙(填写ckName，保存，执行)",
+                    "script": "https://raw.githubusercontent.com/xxx/qlSync.js"#同步脚本#
+                }
+            ],
+            "settings": [
+                {
+                    "id": "QL_HOST",
+                    "name": "青龙服务器地址",
+                    "val": "",
+                    "type": "textarea",
+                    "autoGrow": true,
+                    "rows": 1,
+                    "desc": "填入服务器地址，不包括/，如http://127.0.0.1:5700"
+                },
+                {
+                    "id": "QL_ID"                  ",
+                    "name": "clientId",
+                    "val": "",
+                    "type": "textarea",
+                    "autoGrow": true,
+                    "rows": 1,
+                    "desc": "填入青龙应用的clientId"
+                },
+                {
+                    "id": "QL_SEC",
+                    "name": "secret",
+                    "val": "",
+                    "type": "textarea",
+                    "autoGrow": true,
+                    "rows": 1,
+                    "desc": "填入青龙应用的secret"
+                },
+                {
+                    "id": "AUTO_SYNC",
+                    "name": "autosync",
+                    "val": "false",
+                    "type": "boolean",
+                    "desc": "是否开启自动同步默认关闭"
+                 }
+            ]
+        }
