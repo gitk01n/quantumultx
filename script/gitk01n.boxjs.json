@@ -20,50 +20,45 @@
                 "QL_SEC",
                 "AUTO_SYNC"
             ],
-            "scripts": [
-                {
-                    "name": "同步变量到青龙(保存，执行)",
-                    "script": "https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/script/qlSync.js",
-                    "desc": "同步脚本"
-                }
-            ],
-            
+            "inject": {
+                "boxjs": "https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/script/qlSync.js"
+            },
             "settings": [
-    {
-        "id": "QL_HOST",
-        "name": "青龙面板地址",
-        "val": "",
-        "type": "textarea",
-        "autoGrow": true,
-        "rows": 1,
-        "desc": "示例：http://127.0.0.1:5700，末尾不要带 /"
-    },
-    {
-        "id": "QL_ID",
-        "name": "青龙 Client ID",
-        "val": "",
-        "type": "textarea",
-        "autoGrow": true,
-        "rows": 1,
-        "desc": "填写青龙应用的 Client ID"
-    },
-    {
-        "id": "QL_SEC",
-        "name": "青龙 Client Secret",
-        "val": "",
-        "type": "textarea",
-        "autoGrow": true,
-        "rows": 1,
-        "desc": "填写青龙应用的 Client Secret"
-    },
-    {
-        "id": "AUTO_SYNC",
-        "name": "🔁 自动同步开关",
-        "val": false,
-        "type": "boolean",
-        "desc": "开启后：BoxJS 新增/修改变量 → 自动实时同步到青龙环境变量"
-    }
-]
+                {
+                    "id": "QL_HOST",
+                    "name": "青龙面板地址",
+                    "val": "",
+                    "type": "textarea",
+                    "autoGrow": true,
+                    "rows": 1,
+                    "desc": "示例：http://127.0.0.1:5700，末尾不要带 /"
+                },
+                {
+                    "id": "QL_ID",
+                    "name": "青龙 Client ID",
+                    "val": "",
+                    "type": "textarea",
+                    "autoGrow": true,
+                    "rows": 1,
+                    "desc": "填写青龙应用的 Client ID"
+                },
+                {
+                    "id": "QL_SEC",
+                    "name": "青龙 Client Secret",
+                    "val": "",
+                    "type": "textarea",
+                    "autoGrow": true,
+                    "rows": 1,
+                    "desc": "填写青龙应用的 Client Secret"
+                },
+                {
+                    "id": "AUTO_SYNC",
+                    "name": "🔁 自动实时同步",
+                    "val": false,
+                    "type": "boolean",
+                    "desc": "开启后：保存变量时自动上传到青龙，无需手动执行"
+                }
+            ]
         }
     ]
 }
