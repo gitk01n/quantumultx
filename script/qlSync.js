@@ -199,13 +199,3 @@ function Env(name) {
     });
   };
 }
-// ===== Env 基础框架（通用）=====
-function Env(t) {
-  this.name = t || "script";this.data={};this.dataFile="";this.logs=[];this.isNeedLog=1;
-  this.log=(...t)=>{this.isNeedLog&&(this.logs.push(...t),console.log(...t))};
-  this.getenv=t=>$.env[t];this.setenv=(t,s)=>$.setenv(t,s);
-  this.get=(t,s)=>new Promise(r=>{let e={url:t,...s};require("http").get(e,e=>{let t="";e.on("data",s=>t+=s);e.on("end",()=>r(t))})});
-  this.post=(t,s,e)=>new Promise(r=>{let n=new URL(t);let o=require("http").request({hostname:n.hostname,port:n.port,path:n.pathname+ n.search,method:"POST",headers:s},t=>{let e="";t.on("data",s=>e+=s);t.on("end",()=>r(e))});o.write(e),o.end()});
-  this.put=(t,s,e)=>new Promise(r=>{let n=new URL(t);let o=require("http").request({hostname:n.hostname,port:n.port,path:n.pathname + n.search,method:"PUT",headers:s},t=>{let e="";t.on("data",s=>e+=s);t.on("end",()=>r(e))});o.write(e),o.end()});
-  this.done=()=>{};
-}
