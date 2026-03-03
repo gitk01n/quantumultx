@@ -2,7 +2,7 @@
     "id": "gitk01n.sub",
     "name": "gitk01n脚本订阅",
     "author": "@gitk01n",
-    "icon": "https://raw.githubusercontent.com/Sliverkiss/QuantumultX/main/icon/sakura.png",
+    "icon": "",
     "repo": "",
     "apps": [
         {
@@ -23,7 +23,7 @@
             "scripts": [
                 {
                     "name": "同步变量到青龙(保存，执行)",
-                    "script": "https://raw.githubusercontent.com/xxx/qlSync.js",
+                    "script": "https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/script/qlSync.js",
                     "desc": "同步脚本"
                 }
             ],
