@@ -34,8 +34,8 @@ let obj = JSON.parse(body);
     // 找到关卡配置对象（包含 monsters 字段）
     if (Array.isArray(node.monsters)) {
         // 修改预览金币（仅界面显示）
-        if (node.hasOwnProperty('waveCoin')) node.waveCoin = 999999999;
-        if (node.hasOwnProperty('coinBase') && node.coinBase > 0) node.coinBase = 999999999;
+        if (node.hasOwnProperty('waveCoin')) node.waveCoin = 66666;
+        if (node.hasOwnProperty('coinBase') && node.coinBase > 0) node.coinBase = 66666;
         
         // 修改怪物参数：monster 数组格式为 [怪物ID, 难度等级, 出现数量]
         node.monsters.forEach(wave => {
@@ -43,9 +43,9 @@ let obj = JSON.parse(body);
                 wave.forEach(monster => {
                     if (Array.isArray(monster) && monster.length >= 3) {
                         // 难度等级设为 1（血量伤害最低）
-                        if (typeof monster[1] === 'number') monster[1] = 100;
+                        if (typeof monster[1] === 'number') monster[1] = 200;
                         // 出现数量设为 1
-                        if (typeof monster[2] === 'number') monster[2] = 3;
+                        if (typeof monster[2] === 'number') monster[2] = 1;
                     }
                 });
             }
