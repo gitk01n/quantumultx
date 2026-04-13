@@ -20,10 +20,23 @@ function getCookie() {
         const randNum = String(Math.floor(Math.random() * 99) + 1).padStart(2, "0");
         const formatted = `/dml set ${bearerToken}#${randNum}`;
         $.msg($.name, "Token 获取成功 ✅", formatted);
-        setTimeout(() => {
-        const url = `shortcuts://run-shortcut?name=复制达美乐Token&input=text&text=${encodeURIComponent(formatted)}`;
-  $openURL(url);
-}, 300);
+        // 延迟一点，然后发送可点击的通知
+setTimeout(() => {
+  // Qx 的通知支持 action 参数（部分版本）
+  const shortcutURL = `shortcuts://run-shortcut?name=复制达美乐Token&input=text&text=${encodeURIComponent(formatted)}`;
+  
+  // 尝试带 action 的通知（Qx、Loon、Surge 通用）
+  if (typeof $notify === "function") {
+    $notify("点击复制Token", "点我自动复制", formatted, {
+      "action": {
+        "title": "点击复制",
+        "url": shortcutURL
+      }
+    });
+  }
+}, 500);
+
+
             } else {
                 $.msg($.name, "⚠️ 获取失败", "Authorization 格式错误");
             }
