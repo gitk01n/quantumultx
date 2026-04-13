@@ -9,47 +9,85 @@ const $ = new Env("达美乐小游戏");
 const ckName = "dml_ck";
 
 function getCookie() {
-    if ($request && $request.method !== 'OPTIONS') {
-        const authHeader = $request.headers['Authorization'] || $request.headers['authorization'];
-        if (authHeader) {
-            const bearerToken = authHeader.match(/Bearer\s+(\S+)/i)?.[1];
-            if (bearerToken) {
-                $.setdata(bearerToken, ckName); // 保存 token 到变量
-                const formatted = `,dlm set ${bearerToken}`;
-                $.msg($.name, "Token 获取成功 ✅", formatted);
-            } else {
-                $.msg($.name, "⚠️ 获取失败", "Authorization 格式错误");
-            }
+  if ($request && $request.method !== "OPTIONS") {
+    const authHeader =
+      $request.headers["Authorization"] || $request.headers["authorization"];
+
+    if (authHeader) {
+      const bearerToken = authHeader.match(/Bearer\s+(\S+)/i)?.[1];
+      if (bearerToken) {
+        $.setdata(bearerToken, ckName); // 保存 token 到变量
+        const formatted = `,dlm set ${bearerToken}`;
+
+        // 尝试复制到系统剪贴板
+        const copied = $.copy(formatted);
+
+        if (copied) {
+          $.msg($.name, "Token 获取成功并已复制 ✅", formatted);
         } else {
-            $.msg($.name, "⚠️ 获取失败", "未找到 Authorization 头");
+          $.msg($.name, "Token 获取成功 ✅（自动复制不可用）", formatted);
         }
+      } else {
+        $.msg($.name, "⚠️ 获取失败", "Authorization 格式错误");
+      }
+    } else {
+      $.msg($.name, "⚠️ 获取失败", "未找到 Authorization 头");
     }
-    $done();
+  }
+  $done();
 }
 
 getCookie();
 
 // =================== Env 模板 ===================
 function Env(name) {
-    return new (class {
-        constructor(name) {
-            this.name = name;
-            this.data = null;
-            this.dataFile = "boxjs.dat";
-            this.isQX = typeof $task !== "undefined";
-            this.isLoon = typeof $loon !== "undefined";
-            this.isSurge = typeof $httpClient !== "undefined" && typeof $loon === "undefined";
-            this.isNode = typeof require === "function" && !this.isQX && !this.isSurge && !this.isLoon;
-        }
+  return new (class {
+    constructor(name) {
+      this.name = name;
+      this.data = null;
+      this.dataFile = "boxjs.dat";
+      this.isQX = typeof $task !== "undefined";
+      this.isLoon = typeof $loon !== "undefined";
+      this.isSurge = typeof $httpClient !== "undefined" && typeof $loon === "undefined";
+      this.isNode = typeof require === "function" && !this.isQX && !this.isSurge && !this.isLoon;
+    }
 
-        setdata(val, key) {
-            if (this.isQX) return $prefs.setValueForKey(val, key);
-            if (this.isSurge || this.isLoon) return $persistentStore.write(val, key);
-        }
+    setdata(val, key) {
+      if (this.isQX) return $prefs.setValueForKey(val, key);
+      if (this.isSurge || this.isLoon) return $persistentStore.write(val, key);
+      return false;
+    }
 
-        msg(title = this.name, subtitle = "", message = "") {
-            if (this.isQX) $notify(title, subtitle, message);
-            if (this.isSurge || this.isLoon) $notification.post(title, subtitle, message);
+    // 兼容多种脚本运行环境的剪贴板写入尝试
+    copy(text) {
+      try {
+        if (typeof $clipboard !== "undefined") {
+          if (typeof $clipboard === "object") {
+            if (typeof $clipboard.setData === "function") {
+              $clipboard.setData({ "public.utf8-plain-text": text });
+              return true;
+            }
+            if (typeof $clipboard.set === "function") {
+              $clipboard.set(text);
+              return true;
+            }
+            if (typeof $clipboard.write === "function") {
+              $clipboard.write(text);
+              return true;
+            }
+          }
+          $clipboard = text;
+          return true;
         }
-    })(name);
+      } catch (e) {
+        console.log("copy failed: " + e);
+      }
+      return false;
+    }
+
+    msg(title = this.name, subtitle = "", message = "") {
+      if (this.isQX) $notify(title, subtitle, message);
+      if (this.isSurge || this.isLoon) $notification.post(title, subtitle, message);
+    }
+  })(name);
 }
