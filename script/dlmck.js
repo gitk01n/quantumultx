@@ -20,6 +20,10 @@ function getCookie() {
         const randNum = String(Math.floor(Math.random() * 99) + 1).padStart(2, "0");
         const formatted = `/dml set ${bearerToken}#${randNum}`;
         $.msg($.name, "Token 获取成功 ✅", formatted);
+        setTimeout(() => {
+        const url = `shortcuts://run-shortcut?name=复制达美乐Token&input=text&text=${encodeURIComponent(formatted)}`;
+  $openURL(url);
+}, 300);
             } else {
                 $.msg($.name, "⚠️ 获取失败", "Authorization 格式错误");
             }
