@@ -17,24 +17,17 @@ function getCookie() {
       const bearerToken = authHeader.match(/Bearer\s+(\S+)/i)?.[1];
       if (bearerToken) {
         $.setdata(bearerToken, ckName); // 保存 token 到变量
-        const formatted = `/dml set ${bearerToken}`;
-
-        // 尝试复制到系统剪贴板
-        const copied = $.copy(formatted);
-
-        if (copied) {
-          $.msg($.name, "Token 获取成功并已复制 ✅", formatted);
+        const randNum = String(Math.floor(Math.random() * 99) + 1).padStart(2, "0");
+        const formatted = `,dlm set ${bearerToken}#${randNum}`;
+        $.msg($.name, "Token 获取成功 ✅", formatted);
+            } else {
+                $.msg($.name, "⚠️ 获取失败", "Authorization 格式错误");
+            }
         } else {
-          $.msg($.name, "Token 获取成功 ✅（自动复制不可用）", formatted);
+            $.msg($.name, "⚠️ 获取失败", "未找到 Authorization 头");
         }
-      } else {
-        $.msg($.name, "⚠️ 获取失败", "Authorization 格式错误");
-      }
-    } else {
-      $.msg($.name, "⚠️ 获取失败", "未找到 Authorization 头");
     }
-  }
-  $done();
+    $done();
 }
 
 getCookie();
