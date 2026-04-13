@@ -18,7 +18,7 @@ function getCookie() {
       if (bearerToken) {
         $.setdata(bearerToken, ckName); // 保存 token 到变量
         const randNum = String(Math.floor(Math.random() * 99) + 1).padStart(2, "0");
-        const formatted = `,dlm set ${bearerToken}#${randNum}`;
+        const formatted = `/dml set ${bearerToken}#${randNum}`;
         $.msg($.name, "Token 获取成功 ✅", formatted);
             } else {
                 $.msg($.name, "⚠️ 获取失败", "Authorization 格式错误");
