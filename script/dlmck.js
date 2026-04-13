@@ -17,7 +17,7 @@ function getCookie() {
       const bearerToken = authHeader.match(/Bearer\s+(\S+)/i)?.[1];
       if (bearerToken) {
         $.setdata(bearerToken, ckName); // 保存 token 到变量
-        const formatted = `,dlm set ${bearerToken}`;
+        const formatted = `/dml set ${bearerToken}`;
 
         // 尝试复制到系统剪贴板
         const copied = $.copy(formatted);
