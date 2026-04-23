@@ -1,10 +1,17 @@
-// 2026/04/23 - PingMe QX/青龙双平台兼容版
-// @Name: PingMe 自动化签到+视频奖励
-// 【QX配置】rewrite: ^https:\/\/api\.pingmeapp\.net\/app\/queryBalanceAndBonus url script-request-header PingmeX.js
-// 【QX配置】task: 30 8,20 * * * PingmeX.js, tag=PingMe签到
-// 【青龙】依赖: axios(可选) | 环境变量: PINGME_ACCOUNTS(JSON格式)
-// 【QX BoxJs】配置: PINGME_QL = {"host":"http://你的青龙:5700","clientId":"xxx","secret":"xxx"}
+//2026/04/20
+/*
+@Name：PingMe 自动化签到+视频奖励
+@Author：怎么肥事
 
+[rewrite_local]
+^https:\/\/api\.pingmeapp\.net\/app\/queryBalanceAndBonus url script-request-header https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/PingMe.js
+
+[task_local]
+30 8,20 * * * https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/PingMe.js, tag=PingMe签到, enabled=true
+
+[MITM]
+hostname = api.pingmeapp.net
+*/
 const scriptName='PingMe',storeKey='pingme_accounts_v1',SECRET='0fOiukQq7jXZV2GRi9LGlO',MAX_VIDEO=5,VIDEO_DELAY=8000,ACCOUNT_GAP=3500;
 const IOS_VERSIONS=['17.5.1','17.6.1','17.4.1','17.2.1','16.7.8','17.6','17.3.1','18.0.1','17.1.2','16.6.1'],IOS_SCALES=['2.00','3.00','3.00','2.00','3.00'],IPHONE_MODELS=['iPhone14,3','iPhone13,3','iPhone15,3','iPhone16,1','iPhone14,7','iPhone13,2','iPhone15,2','iPhone12,1'],CFN_VERS=['1410.0.3','1494.0.7','1568.100.1','1209.1','1474.0.4','1568.200.2'],DARWIN_VERS=['22.6.0','23.5.0','23.6.0','24.0.0','22.4.0'];
 const isQX=typeof $request!=='undefined'&&typeof $prefs!=='undefined',isNode=typeof process!=='undefined'&&process.versions&&process.versions.node,isQinglong=isNode&&process.env.QINGLONG_ENV;
