@@ -19,8 +19,8 @@ const $ = new Env("PingMe");
 const storeKey = 'pingme_accounts_v1';
 const SECRET = '0fOiukQq7jXZV2GRi9LGlO';
 const MAX_VIDEO = 5;
-const VIDEO_DELAY = 8000;
-const ACCOUNT_GAP = 3500;
+const VIDEO_DELAY = 13000;
+const ACCOUNT_GAP = 30000;
 
 // ============ 1. 青龙推送模块准备 ============
 let notify = '';
@@ -141,7 +141,9 @@ async function runAccount(acc, index, total) {
     msgs.push(`✅ 签到：${(res?.result?.bonusHint || res?.retmsg || '请求结束').replace(/\n/g, ' ')}`);
 
     for (let v = 1; v <= MAX_VIDEO; v++) {
-        await $.wait(v === 1 ? 1000 : VIDEO_DELAY);
+        // 随机等待 10 到 20 秒之间，模拟真人看广告的时间
+        const jitter = Math.floor(Math.random() * 5000); 
+        await $.wait(v === 1 ? 2000 : VIDEO_DELAY + jitter);
         res = await fetchApi('videoBonus');
         if (res && res.retcode === 0) {
             msgs.push(`🎬 视频${v}：+${res.result?.bonus || '?'} Coins`);
