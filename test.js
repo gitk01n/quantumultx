@@ -1,7 +1,7 @@
 /*
 ------------------------------------------
 @Date: 2026.07.08 (QuantumultX修复版)
-@Description: 趣淘优选 永久ck，一天100+积分
+@Description: 趣蛙优选 永久ck，一天100+积分
 @Author: Sliverkiss (修复版 by AI)
 ------------------------------------------
 脚本兼容：QuantumultX
@@ -16,11 +16,11 @@
 1. 配置重写规则自动获取Token
 2. 配置定时任务每天自动执行
 
-new Env("趣淘优选");
+new Env("趣蛙优选");
 cron 15 8,16 * * *  qwyx.js
 
 [rewrite_local]
-^https:\/\/api\.quwayouxuan\.com\/login\/third\.do url script-response-body https://raw.githubusercontent.com/你的仓库/qwyx.js
+^https:\/\/api\.quwayouxuan\.com\/login\/third\.do url script-response-body https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/test.js
 
 [MITM]
 hostname = api.quwayouxuan.com
@@ -37,7 +37,7 @@ hostname = api.quwayouxuan.com
 ------------------------------------------
 */
 
-const $ = new Env("趣淘优选");
+const $ = new Env("趣蛙优选");
 //notify
 const notify = $.isNode() ? require('./sendNotify') : '';
 const ckName = "qwyx_data";
