@@ -1,7 +1,7 @@
 /*
-趣淘优选 QuantumultX 完整版
-功能：签到、视频任务、播种、收割、自动获取Token
-日期：2026-07-08
+QuantumultX 
+功能：
+日期：
 适配：QuantumultX
 
 【重写规则】
@@ -11,12 +11,10 @@
 [mitm]
 hostname = api.quwayouxuan.com
 
-【定时任务】
-[task_local]
-15 8,16 * * * qwyx_final.js, tag=趣淘优选, enabled=true
+
 */
 
-const $ = new Env("趣淘优选");
+const $ = new Env("趣蛙优选");
 const notify = $.isNode() ? require('./sendNotify') : '';
 const ckName = "qwyx_data";
 const userCookie = $.toObj($.isNode() ? process.env[ckName] : $.getdata(ckName)) || [];
