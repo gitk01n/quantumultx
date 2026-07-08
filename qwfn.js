@@ -6,7 +6,7 @@ QuantumultX
 
 【重写规则】
 [rewrite_local]
-^https://api\.quwayouxuan\.com/login/third\.do url script-response-body https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/qwfn.js
+^https:\/\/api\.quwayouxuan\.com\/login\/third\.do url script-response-body https://raw.githubusercontent.com/gitk01n/quantumultx/refs/heads/main/qwfn.js
 
 [mitm]
 hostname = api.quwayouxuan.com
